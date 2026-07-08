@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KNCSolutions — MVNO 정산 검증 솔루션 카탈로그 (MVNO용)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --dark:#060F14;--dark2:#0C1E1E;--dark3:#112828;
+  --gold:#FFB703;--white:#FFFFFF;
+  --teal:#1B9090;--teal2:#26B8B8;
+  --gray:#80CDCD;--gray2:#3A7070;
+  --red:#E03535;--ora:#D46A0A;
+}
+body{font-family:'Noto Sans KR','Malgun Gothic',sans-serif;
+  background:#E8F5F5;color:#111}
+.page{width:min(297mm,100%);min-height:210mm;margin:20px auto;
+  background:white;position:relative;overflow:hidden;
+  page-break-after:always;box-shadow:0 4px 32px rgba(0,0,0,.12)}
+
+/* P1: COVER */
+.p1{background:var(--dark);display:grid;
+  grid-template-columns:1fr 1fr;min-height:210mm}
+.p1-left{padding:48px 40px 40px;display:flex;flex-direction:column;justify-content:space-between}
+.p1-logo{font-size:13px;color:var(--gray);letter-spacing:.15em;font-weight:300}
+.p1-tag{display:inline-block;background:rgba(38,184,184,.15);
+  border:1px solid var(--teal2);color:var(--teal2);
+  font-size:11px;padding:4px 12px;border-radius:20px;
+  letter-spacing:.1em;margin-bottom:20px}
+.p1-h{font-size:clamp(26px,3.2vw,42px);font-weight:700;
+  color:var(--white);line-height:1.32;margin-bottom:16px}
+.p1-h em{color:var(--teal2);font-style:normal}
+.p1-h .gold{color:var(--gold)}
+.p1-sub{font-size:15px;color:var(--gray);font-weight:300;
+  line-height:1.75;margin-bottom:36px}
+.p1-bottom{border-top:1px solid var(--dark3);padding-top:20px;
+  font-size:12px;color:var(--gray2)}
+.p1-right{background:var(--dark2);padding:40px 36px;
+  display:flex;flex-direction:column;gap:18px;justify-content:center}
+.cover-card{background:var(--dark3);border-radius:10px;padding:20px 22px;
+  border-left:3px solid var(--teal)}
+.cover-card .cc-label{font-size:11px;color:var(--teal2);
+  letter-spacing:.12em;font-weight:500;margin-bottom:8px}
+.cover-card .cc-val{font-size:26px;font-weight:900;color:var(--white);line-height:1}
+.cover-card .cc-sub{font-size:12px;color:var(--gray);margin-top:4px}
+
+/* P2: BEFORE/AFTER */
+.p2{display:grid;grid-template-columns:1fr 1fr;min-height:210mm}
+.p2-left{background:var(--dark2);padding:48px 36px;color:white}
+.p2-right{background:#F0F8F8;padding:48px 36px}
+.section-tag{font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  font-weight:500;margin-bottom:24px}
+.p2-left .section-tag{color:var(--red)}
+.p2-right .section-tag{color:var(--teal)}
+.p2h{font-size:22px;font-weight:700;line-height:1.35;margin-bottom:28px}
+.p2-left .p2h{color:var(--white)}
+.p2-right .p2h{color:#111}
+.prob-item{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px}
+.prob-item .ico{font-size:18px;flex-shrink:0;margin-top:2px}
+.prob-item .txt{font-size:14px;line-height:1.65;font-weight:300;
+  color:rgba(255,255,255,.75)}
+.prob-item .txt strong{color:var(--white);font-weight:600}
+.sol-item{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px}
+.sol-dot{width:8px;height:8px;border-radius:50%;
+  background:var(--teal);flex-shrink:0;margin-top:6px}
+.sol-item .txt{font-size:14px;color:#1A4040;line-height:1.65;font-weight:300}
+.sol-item .txt strong{color:#0A2828;font-weight:600}
+.compare-box{background:white;border-radius:10px;padding:20px;
+  border:1px solid #C0DEDE;margin-top:20px}
+.compare-box .cb-label{font-size:11px;color:var(--teal);
+  letter-spacing:.12em;font-weight:500;margin-bottom:14px}
+.cmp-row{display:grid;grid-template-columns:auto 1fr 1fr;
+  gap:12px;margin-bottom:10px;align-items:center;
+  font-size:13px;padding-bottom:10px;border-bottom:1px solid #EEF8F8}
+.cmp-row:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.cmp-row .aspect{color:#6B7A99;font-weight:500}
+.cmp-row .before{color:#E03535}
+.cmp-row .after{color:var(--teal);font-weight:600}
+
+/* P3: VERIFICATION TABLE */
+.p3{background:white;padding:48px 48px 40px;min-height:210mm}
+.p3-header{text-align:center;margin-bottom:32px}
+.p3-tag{font-size:11px;color:var(--teal);letter-spacing:.2em;
+  font-weight:500;margin-bottom:12px}
+.p3-h{font-size:28px;font-weight:700;color:#111;margin-bottom:8px}
+.p3-sub{font-size:14px;color:#6B7A99;font-weight:300}
+.verify-table{width:100%;border-collapse:collapse}
+.verify-table thead tr{background:var(--dark2);color:white}
+.verify-table thead th{padding:12px 14px;font-size:12px;
+  font-weight:500;letter-spacing:.05em;text-align:left}
+.verify-table tbody tr:nth-child(even){background:#F5FAFA}
+.verify-table tbody tr:hover{background:#E8F5F5}
+.verify-table tbody td{padding:13px 14px;font-size:13px;
+  border-bottom:1px solid #E8F5F5;color:#334155;vertical-align:top}
+.mc-badge{display:inline-block;padding:3px 8px;border-radius:4px;
+  font-size:11px;font-weight:600;background:rgba(224,53,53,.1);
+  color:var(--red);border:1px solid rgba(224,53,53,.25)}
+.status-ok{color:#10B981;font-weight:600;font-size:12px}
+.status-warn{color:var(--ora);font-weight:600;font-size:12px}
+.chk-item{font-size:12px;line-height:1.8;color:#4A6060}
+.chk-item li{margin-left:14px}
+.example-box{background:#E8F5F5;border-radius:8px;
+  padding:12px 14px;font-size:12px;color:#1A4040;
+  font-family:'Courier New',monospace;margin-top:6px;line-height:1.7}
+.example-box strong{color:var(--teal);font-family:'Noto Sans KR',sans-serif}
+.p3-note{margin-top:20px;font-size:12px;color:#9BA5B8;
+  text-align:center;font-style:italic}
+
+/* P4: CTA */
+.p4{background:var(--dark);display:grid;
+  grid-template-columns:1fr 1fr;min-height:210mm}
+.p4-left{padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between}
+.p4-eyebrow{font-size:11px;color:var(--teal2);letter-spacing:.22em;
+  text-transform:uppercase;font-weight:500;margin-bottom:24px}
+.p4-h{font-size:clamp(22px,2.8vw,36px);font-weight:700;
+  color:var(--white);line-height:1.38;margin-bottom:18px}
+.p4-h em{color:var(--teal2);font-style:normal}
+.p4-h .gold{color:var(--gold)}
+.p4-sub{font-size:14px;color:var(--gray);font-weight:300;
+  line-height:1.75;margin-bottom:36px}
+.p4-steps{display:flex;flex-direction:column;gap:0}
+.p4-step{display:flex;gap:20px;padding:16px 0;
+  border-bottom:1px solid var(--dark3)}
+.p4-step:last-child{border-bottom:none}
+.p4-dot{width:32px;height:32px;border-radius:50%;
+  background:var(--teal2);color:#fff;font-weight:700;font-size:14px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.p4-step-text .wk{font-size:11px;color:var(--teal2);
+  font-weight:500;letter-spacing:.08em;margin-bottom:3px}
+.p4-step-text .desc{font-size:13px;color:var(--gray);line-height:1.5}
+.p4-bottom{font-size:12px;color:var(--gray2)}
+.p4-right{background:var(--dark2);padding:40px 36px;
+  display:flex;flex-direction:column;gap:20px;justify-content:center}
+.contact-box{background:var(--dark3);border-radius:12px;
+  padding:24px;border:1px solid var(--dark2)}
+.contact-box .cb-label{font-size:11px;color:var(--teal2);
+  letter-spacing:.12em;font-weight:500;margin-bottom:16px}
+.cb-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.cb-row:last-child{margin-bottom:0}
+.cb-row .icon{font-size:16px;width:24px;text-align:center}
+.cb-row .val{font-size:14px;color:#A0D8D8}
+.pilot-box{background:linear-gradient(135deg,#061818,#0A2828);
+  border:1px solid var(--teal2);border-radius:12px;
+  padding:24px;text-align:center}
+.pilot-box .pb-label{font-size:11px;color:var(--teal2);
+  letter-spacing:.12em;font-weight:500;margin-bottom:12px}
+.pilot-box .pb-big{font-size:32px;font-weight:900;
+  color:var(--white);margin-bottom:6px}
+.pilot-box .pb-sub{font-size:13px;color:rgba(255,255,255,.55)}
+.saving-box{background:linear-gradient(135deg,#1C2C10,#0C2010);
+  border:1px solid var(--gold);border-radius:12px;
+  padding:20px 24px}
+.saving-box .sb-label{font-size:11px;color:var(--gold);
+  letter-spacing:.12em;font-weight:500;margin-bottom:12px}
+.sb-row{display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-row:last-child{border-bottom:none}
+.sb-row .k{color:rgba(255,255,255,.55)}
+.sb-row .v{color:var(--gold);font-weight:700}
+
+@media (max-width:960px){
+  .p1,.p2,.p4{grid-template-columns:1fr}
+  .p1-right,.p2-right,.p4-right{padding:32px}
+  .p1-left,.p2-left,.p4-left{padding:36px 32px}
+  .p1-right{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .p3{padding:36px 32px 32px}
+  .verify-table th,.verify-table td{font-size:12px;padding:9px 10px}
+  .compare-box .cmp-row{font-size:12px}
+}
+@media (max-width:640px){
+  body{background:#E8F5F5}
+  .page{margin:12px auto;min-height:auto}
+  .p1-right{grid-template-columns:1fr 1fr}
+  .p1-h{font-size:22px}
+  .p2h{font-size:18px}
+  .verify-table{font-size:11px}
+  .verify-table th,.verify-table td{padding:7px 5px}
+  .verify-table th:nth-child(3),.verify-table td:nth-child(3){display:none}
+  .example-box{font-size:10px}
+  .p3-h{font-size:20px}
+  .cmp-row{grid-template-columns:auto 1fr;gap:6px}
+  .cmp-row .after{display:none}
+}
+@media print{
+  body{background:white}
+  .page{margin:0;box-shadow:none;width:297mm;page-break-after:always}
+}
+</style>
+</head>
+<body>
+
+<!-- P1: COVER -->
+<div class="page p1">
+  <div class="p1-left">
+    <div class="p1-logo">KNCSolutions</div>
+    <div>
+      <div class="p1-tag">MVNO 사업자 전용</div>
+      <h1 class="p1-h">
+        이번 달 청구서,<br>
+        <em>계산이 맞는지</em><br>
+        이제 확인할 수 있습니다
+      </h1>
+      <p class="p1-sub">
+        지식그래프 기반 정산 검증 엔진으로<br>
+        MNO의 청구 구조를 MVNO 관점에서<br>
+        가입자 단위까지 투명하게 재현합니다.
+      </p>
+    </div>
+    <div class="p1-bottom">
+      MVNO 정산 검증 솔루션 카탈로그 &nbsp;|&nbsp; 2026 &nbsp;|&nbsp; KNCSolutions
+    </div>
+  </div>
+  <div class="p1-right">
+    <div class="cover-card">
+      <div class="cc-label">검증 가능 항목</div>
+      <div class="cc-val">약 40<span style="font-size:.4em;font-weight:400">개</span></div>
+      <div class="cc-sub">도매대가항목 전체 검증 가능</div>
+    </div>
+    <div class="cover-card">
+      <div class="cc-label">계산 단위</div>
+      <div class="cc-val">가입자</div>
+      <div class="cc-sub">한 명 단위까지 드릴다운</div>
+    </div>
+    <div class="cover-card">
+      <div class="cc-label">과청구 탐지 시간</div>
+      <div class="cc-val">실시간</div>
+      <div class="cc-sub">청구서 수신 즉시 검증</div>
+    </div>
+    <div class="cover-card" style="border-color:var(--gold)">
+      <div class="cc-label">절감 효과 사례</div>
+      <div class="cc-val" style="color:var(--gold)">3~8<span style="font-size:.55em">%</span></div>
+      <div class="cc-sub">월 정산 비용 대비 절감</div>
+    </div>
+  </div>
+</div>
+
+<!-- P2: BEFORE/AFTER -->
+<div class="page p2">
+  <div class="p2-left">
+    <div class="section-tag">지금까지의 문제</div>
+    <h2 class="p2h">청구서가 와도<br>확인할 방법이 없습니다</h2>
+    <div class="prob-item">
+      <span class="ico">📄</span>
+      <div class="txt"><strong>총액만 청구됩니다</strong><br>도매대가항목별 세부 내역이 없어 무엇을 어떻게 계산했는지 모릅니다</div>
+    </div>
+    <div class="prob-item">
+      <span class="ico">🔒</span>
+      <div class="txt"><strong>정산 로직이 MNO에만 있습니다</strong><br>가입자당단가·통화료·로밍의 계산식을 MVNO는 알 수 없습니다</div>
+    </div>
+    <div class="prob-item">
+      <span class="ico">💸</span>
+      <div class="txt"><strong>과청구를 발견해도 증명이 불가능</strong><br>이의신청에 필요한 근거 자료를 만들 도구가 없습니다</div>
+    </div>
+    <div class="prob-item">
+      <span class="ico">📉</span>
+      <div class="txt"><strong>협상에서 항상 불리합니다</strong><br>숫자를 모르면 재계약 조건을 방어할 수 없습니다</div>
+    </div>
+    <div class="prob-item">
+      <span class="ico">🗂️</span>
+      <div class="txt"><strong>감사·정산 검증 비용 과다</strong><br>외부 컨설팅 없이는 정산 적정성을 판단하기 어렵습니다</div>
+    </div>
+  </div>
+  <div class="p2-right">
+    <div class="section-tag">솔루션 도입 후</div>
+    <h2 class="p2h" style="color:#0A2828">MNO의 정산 구조를<br>MVNO도 봅니다</h2>
+    <div class="sol-item">
+      <div class="sol-dot"></div>
+      <div class="txt"><strong>청구 계산식 완전 재현</strong><br>도매대가항목별 공식을 지식그래프로 모델링하여 계산 과정을 시각화합니다</div>
+    </div>
+    <div class="sol-item">
+      <div class="sol-dot"></div>
+      <div class="txt"><strong>가입자 단위 드릴다운</strong><br>특정 가입자의 이번 달 청구 금액이 왜 그 숫자인지 추적합니다</div>
+    </div>
+    <div class="sol-item">
+      <div class="sol-dot"></div>
+      <div class="txt"><strong>자동 이상 탐지</strong><br>청구서 수신 즉시 계산 값과 비교하여 차이를 자동으로 알립니다</div>
+    </div>
+    <div class="compare-box">
+      <div class="cb-label">도입 전후 비교</div>
+      <div class="cmp-row">
+        <span class="aspect">청구 내역</span>
+        <span class="before">총액 1장</span>
+        <span class="after">도매대가항목·가입자별 상세</span>
+      </div>
+      <div class="cmp-row">
+        <span class="aspect">오류 발견</span>
+        <span class="before">발견 불가</span>
+        <span class="after">즉시 자동 탐지</span>
+      </div>
+      <div class="cmp-row">
+        <span class="aspect">이의신청</span>
+        <span class="before">근거 없음</span>
+        <span class="after">1클릭 근거 자료</span>
+      </div>
+      <div class="cmp-row">
+        <span class="aspect">협상 자료</span>
+        <span class="before">없음</span>
+        <span class="after">실사용 데이터 리포트</span>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:rgba(38,184,184,.08);border-radius:8px;overflow:hidden;border:1px solid rgba(38,184,184,.25)">
+      <div style="padding:8px 14px;font-size:10px;letter-spacing:.15em;color:#26B8B8;font-weight:700;border-bottom:1px solid rgba(38,184,184,.2)">글로벌 통신 정산 감사 사례</div>
+      <div style="display:flex">
+        <div style="flex:1;padding:10px 12px;border-right:1px solid rgba(38,184,184,.2);text-align:center">
+          <div style="font-size:20px;font-weight:900;color:#E03535">85%</div>
+          <div style="font-size:10px;color:#6BCECE">청구서 오류율 (Gartner)</div>
+        </div>
+        <div style="flex:1;padding:10px 12px;border-right:1px solid rgba(38,184,184,.2);text-align:center">
+          <div style="font-size:20px;font-weight:900;color:#26B8B8">7~12%</div>
+          <div style="font-size:10px;color:#6BCECE">평균 청구 오차 (Aberdeen)</div>
+        </div>
+        <div style="flex:1;padding:10px 12px;border-right:1px solid rgba(38,184,184,.2);text-align:center">
+          <div style="font-size:20px;font-weight:900;color:#26B8B8">19.3억</div>
+          <div style="font-size:10px;color:#6BCECE">연간 절감 (글로벌 사례)</div>
+        </div>
+        <div style="flex:1;padding:10px 12px;text-align:center">
+          <div style="font-size:20px;font-weight:900;color:#26B8B8">+50%</div>
+          <div style="font-size:10px;color:#6BCECE">그래프 적용 시 탐지율</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- P3: VERIFICATION EXAMPLES -->
+<div class="page p3">
+  <div class="p3-header">
+    <div class="p3-tag">정산 검증 예시</div>
+    <h2 class="p3-h">도매대가항목별 검증 방식 — 실제 적용 사례</h2>
+    <p class="p3-sub">솔루션이 각 청구 항목을 어떻게 재현하고 검증하는지 보여드립니다</p>
+  </div>
+  <table class="verify-table">
+    <thead>
+      <tr>
+        <th>항목명</th>
+        <th>검증 계산식</th>
+        <th>검증 예시</th>
+        <th>상태</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>가입자당단가</strong></td>
+        <td>기본료 × 요율 × (사용일/전체일)</td>
+        <td>
+          <div class="example-box">
+            LTE 150G: 10,000 × 80% × (30/30)<br>
+            = <strong>8,000원</strong> (MNO 청구: 8,400원 ⚠️)
+          </div>
+        </td>
+        <td><span class="status-warn">⚠️ 차이 발견</span></td>
+      </tr>
+      <tr>
+        <td><strong>통화료</strong></td>
+        <td>초과 통화량(분) × 1.8원/분</td>
+        <td>
+          <div class="example-box">
+            음성100분 초과 20분:<br>
+            20 × 1.8 = <strong>36원</strong> (MNO 청구: 36원 ✓)
+          </div>
+        </td>
+        <td><span class="status-ok">✓ 일치</span></td>
+      </tr>
+      <tr>
+        <td><strong>데이터 사용료</strong></td>
+        <td>초과 데이터(MB) × 2원/MB</td>
+        <td>
+          <div class="example-box">
+            3G 한도 초과 500MB:<br>
+            500 × 2 = <strong>1,000원</strong> (MNO 청구: 1,000원 ✓)
+          </div>
+        </td>
+        <td><span class="status-ok">✓ 일치</span></td>
+      </tr>
+      <tr>
+        <td><strong>로밍</strong></td>
+        <td>실사용 로밍 요금 × 정산 비율</td>
+        <td>
+          <div class="example-box">
+            일일권 3,000원 × 90%:<br>
+            = <strong>2,700원</strong> (MNO 청구: 2,700원 ✓)
+          </div>
+        </td>
+        <td><span class="status-ok">✓ 일치</span></td>
+      </tr>
+      <tr>
+        <td><strong>수익쉐어</strong></td>
+        <td>월 매출 × 쉐어율</td>
+        <td>
+          <div class="example-box">
+            월 매출 50,000,000 × 5%:<br>
+            = <strong>2,500,000원</strong> (MNO 청구: 2,700,000원 ⚠️)
+          </div>
+        </td>
+        <td><span class="status-warn">⚠️ 초과 청구</span></td>
+      </tr>
+      <tr>
+        <td><strong>부가서비스</strong></td>
+        <td>서비스별 월정액 합산</td>
+        <td>
+          <div class="example-box">
+            착신전환 500 + 컬러링 900:<br>
+            = <strong>1,400원</strong> (MNO 청구: 1,400원 ✓)
+          </div>
+        </td>
+        <td><span class="status-ok">✓ 일치</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="p3-note">* 예시 데이터 기준 · 실제 적용 시 MVNO의 계약 조건 반영 · 약 40개 전 도매대가항목 검증 가능</p>
+</div>
+
+<!-- P4: CTA -->
+<div class="page p4">
+  <div class="p4-left">
+    <div>
+      <div class="p4-eyebrow">성과 공유 파트너십</div>
+      <h2 class="p4-h">
+        찾아낸 절감액을<br>
+        <em>함께 나눕니다</em>
+      </h2>
+      <p class="p4-sub">
+        착수 비용 없이 시작합니다.<br>
+        과청구 발견 → 절감 금액 확정 →<br>
+        절감액의 일정 비율을 성과 보수로 공유합니다.
+      </p>
+      <div class="p4-steps">
+        <div class="p4-step">
+          <div class="p4-dot">1</div>
+          <div class="p4-step-text">
+            <div class="wk">1단계</div>
+            <div class="desc">청구 구조 분석 — 현재 MNO 청구서 파악, 도매대가항목 매핑</div>
+          </div>
+        </div>
+        <div class="p4-step">
+          <div class="p4-dot">2</div>
+          <div class="p4-step-text">
+            <div class="wk">2단계</div>
+            <div class="desc">지식그래프 구축 — 계약 조건 반영, 계산식 시각화</div>
+          </div>
+        </div>
+        <div class="p4-step">
+          <div class="p4-dot">3</div>
+          <div class="p4-step-text">
+            <div class="wk">3단계</div>
+            <div class="desc">절감액 확정 — 성과 공유 계약 체결, 환급 요청 지원</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="p4-bottom">
+      MVNO-2026-001 &nbsp;|&nbsp; KNCSolutions &nbsp;|&nbsp; 2026
+    </div>
+  </div>
+  <div class="p4-right">
+    <div class="pilot-box">
+      <div class="pb-label">사업 모델</div>
+      <div class="pb-big" style="font-size:26px">성과 공유</div>
+      <div class="pb-sub">착수 비용 없음 · 3주 검증<br>찾아낸 절감액의 일정 비율을 성과 보수로 공유<br><span style="color:var(--teal2);font-size:12px">찾지 못하면 비용도 없습니다</span></div>
+    </div>
+    <div class="saving-box">
+      <div class="sb-label">예상 절감 효과 & 성과 공유</div>
+      <div class="sb-row"><span class="k">월 정산 규모 10억 · 3% 절감</span><span class="v">3,000만원 절감</span></div>
+      <div class="sb-row"><span class="k">월 정산 규모 50억 · 5% 절감</span><span class="v">2.5억원 절감</span></div>
+      <div class="sb-row"><span class="k">성과 보수 (절감액의 일정 비율)</span><span class="v">협의 후 결정</span></div>
+    </div>
+    <div class="contact-box">
+      <div class="cb-label">문의</div>
+      <div class="cb-row"><span class="icon">📧</span>
+        <span class="val">jk.kim@kncsolution.co.kr</span></div>
+      <div class="cb-row"><span class="icon">🏢</span>
+        <span class="val">KNCSolutions</span></div>
+      <div class="cb-row"><span class="icon">🤝</span>
+        <span class="val" style="font-size:13px">착수 무료 · 절감액 성과 공유 방식</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════ P5: COMPANY ════ -->
+<div class="page" style="background:#060F14;display:grid;grid-template-columns:1fr 1fr;min-height:210mm">
+  <style>
+  .cp-left{padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between}
+  .cp-right{background:#0C1E26;padding:48px 40px;display:flex;flex-direction:column;gap:28px;justify-content:center}
+  .cp-logo-block{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+  .cp-logo-mark{width:54px;height:54px;border-radius:10px;
+    background:linear-gradient(135deg,#1A6FCC,#0EA5E9);
+    display:flex;align-items:center;justify-content:center;
+    font-size:28px;font-weight:900;color:#fff;flex-shrink:0}
+  .cp-logo-name{font-size:20px;font-weight:800;color:#fff}
+  .cp-logo-name em{color:#26B8B8;font-style:normal}
+  .cp-logo-kr{font-size:11px;color:#6B8E9E;letter-spacing:.12em;margin-top:2px}
+  .cp-tagline{font-size:26px;font-weight:700;color:#fff;line-height:1.4;margin-bottom:20px}
+  .cp-tagline em{color:#26B8B8;font-style:normal}
+  .cp-desc{font-size:13px;color:#6B8E9E;line-height:1.9;font-weight:300;margin-bottom:28px}
+  .cp-badges{display:flex;flex-wrap:wrap;gap:8px}
+  .cp-badge{background:rgba(38,184,184,.1);border:1px solid rgba(38,184,184,.25);
+    color:#26B8B8;font-size:10px;padding:3px 10px;border-radius:20px}
+  .cp-bottom{border-top:1px solid #122030;padding-top:18px;font-size:11px;color:#3A5A6A}
+  .cp-sec-title{font-size:10px;letter-spacing:.2em;color:#26B8B8;
+    font-weight:600;text-transform:uppercase;margin-bottom:14px}
+  .cp-item{display:flex;gap:14px;margin-bottom:18px}
+  .cp-ico{font-size:18px;flex-shrink:0;margin-top:2px}
+  .cp-item-body strong{font-size:13px;color:#fff;display:block;margin-bottom:3px}
+  .cp-item-body p{font-size:12px;color:#6B8E9E;line-height:1.6;margin:0}
+  .cp-contact{margin-top:auto}
+  .cp-crow{display:flex;align-items:center;gap:10px;padding:8px 0;
+    border-bottom:1px solid #122030;font-size:12px;color:#6B8E9E}
+  .cp-crow:last-child{border:none}
+  .cp-crow strong{color:#fff}
+  </style>
+  <div class="cp-left">
+    <div>
+      <div class="cp-logo-block">
+        <img src="knc_logo_light.png" alt="KNCSolutions" style="height:60px;object-fit:contain;display:block">
+      </div>
+      <h2 class="cp-tagline">통신 정산의 복잡함을<br><em>지식그래프로</em> 단순하게</h2>
+      <p class="cp-desc">
+        KNCSolutions은 MVNO·MNO 통신 정산 온톨로지 전문 기업입니다.<br>
+        지식그래프 기반 솔루션으로 정산 관계를 처음으로 시각화하고,<br>
+        자동화·무결점화합니다.<br><br>
+        MNO가 청구한 내역을 가입자 단위까지 재현하여<br>
+        과청구 여부를 즉시 검증합니다.
+      </p>
+      <div class="cp-badges">
+        <span class="cp-badge">통신 정산</span>
+        <span class="cp-badge">온톨로지</span>
+        <span class="cp-badge">지식그래프</span>
+        <span class="cp-badge">과청구 검증</span>
+        <span class="cp-badge">MVNO/MNO</span>
+        <span class="cp-badge">성과 공유</span>
+      </div>
+    </div>
+    <div class="cp-bottom">KNCSolutions · MVNO-2026-001 · 2026</div>
+  </div>
+  <div class="cp-right">
+    <div>
+      <div class="cp-sec-title">핵심 역량</div>
+      <div class="cp-item">
+        <span class="cp-ico">🔷</span>
+        <div class="cp-item-body">
+          <strong>온톨로지 설계</strong>
+          <p>약 40개 도매대가항목을 지식그래프로 완전 정의<br>MNO 정산 로직을 MVNO 관점으로 재현</p>
+        </div>
+      </div>
+      <div class="cp-item">
+        <span class="cp-ico">🔍</span>
+        <div class="cp-item-body">
+          <strong>과청구 검증</strong>
+          <p>가입자 단위 드릴다운 · 계산 오차 즉시 탐지<br>이의신청 근거 1분 안에 생성</p>
+        </div>
+      </div>
+      <div class="cp-item">
+        <span class="cp-ico">💪</span>
+        <div class="cp-item-body">
+          <strong>협상력 강화</strong>
+          <p>실사용 데이터 기반 재계약 협상 지원<br>감에서 수치로, 불리한 조건에서 동등한 조건으로</p>
+        </div>
+      </div>
+      <div class="cp-item">
+        <span class="cp-ico">🤝</span>
+        <div class="cp-item-body">
+          <strong>성과 공유 모델</strong>
+          <p>착수 비용 없음 · 절감액 비율로 보수 공유<br>찾지 못하면 비용도 없습니다</p>
+        </div>
+      </div>
+    </div>
+    <div class="cp-contact">
+      <div class="cp-sec-title">Contact</div>
+      <div class="cp-crow">📧&nbsp;<strong>jk.kim@kncsolution.co.kr</strong></div>
+      <div class="cp-crow">🏢&nbsp;KNCSolutions · 케이엔씨솔루션즈즈</div>
+      <div class="cp-crow">📄&nbsp;MVNO-2026-001</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

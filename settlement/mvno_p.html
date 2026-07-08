@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MVNO 정산 솔루션 — MVNO 사업자 제안서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --dark:#060F14;--dark2:#0C1E1E;--dark3:#112828;
+  --gold:#FFB703;--gold2:#FFD55F;
+  --white:#FFFFFF;--gray:#80CDCD;--gray2:#3A7070;
+  --teal:#1B9090;--teal2:#26B8B8;
+  --red:#E03535;--ora:#D46A0A;--yel:#BB8800;--blu:#3A5DC8;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark);
+  font-family:'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  opacity:0;transform:translateX(80px);
+  transition:opacity .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1);
+  pointer-events:none}
+.slide.active{opacity:1;transform:translateX(0);pointer-events:all}
+.slide.out{opacity:0;transform:translateX(-80px)}
+
+.nav{position:fixed;bottom:0;left:0;right:0;height:48px;
+  display:flex;align-items:center;justify-content:center;gap:20px;
+  background:rgba(6,15,20,.88);backdrop-filter:blur(8px);
+  border-top:1px solid rgba(255,255,255,.05);z-index:999}
+.nbtn{background:transparent;border:1px solid var(--gray2);color:var(--white);
+  width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;
+  display:flex;align-items:center;justify-content:center;transition:.2s}
+.nbtn:hover{background:rgba(255,183,3,.18);border-color:var(--gold)}
+.dots{display:flex;gap:8px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gray2);
+  cursor:pointer;transition:.35s}
+.dot.on{background:var(--teal2);width:22px;border-radius:4px}
+.ncnt{font-size:11px;color:var(--gray);letter-spacing:.1em;min-width:36px;text-align:center}
+
+.badge{position:absolute;top:30px;left:40px;font-size:11px;color:var(--gray);
+  letter-spacing:.18em;text-transform:uppercase;font-weight:300}
+.co{position:absolute;bottom:60px;right:40px;font-size:11px;
+  color:var(--gray2);letter-spacing:.06em}
+.pgnum{position:absolute;top:30px;right:40px;font-size:11px;
+  color:var(--gray2);letter-spacing:.1em;z-index:10}
+
+.ai{opacity:0;transform:translateY(22px);
+  transition:opacity .6s ease,transform .6s ease}
+.slide.active .ai{opacity:1;transform:translateY(0)}
+.d1{transition-delay:.1s}.d2{transition-delay:.25s}.d3{transition-delay:.4s}
+.d4{transition-delay:.55s}.d5{transition-delay:.7s}.d6{transition-delay:.85s}
+
+/* ━━━ S1 ━━━ */
+#s1{background:var(--dark);text-align:center}
+.s1-eye{font-size:12px;color:var(--teal2);letter-spacing:.25em;
+  text-transform:uppercase;font-weight:500;margin-bottom:52px}
+.s1-h{font-size:clamp(32px,4.6vw,60px);font-weight:700;color:var(--white);
+  line-height:1.3;max-width:880px}
+.s1-h em{color:var(--gold);font-style:normal}
+.s1-line{width:52px;height:3px;background:var(--teal2);margin:44px auto}
+.s1-sub{font-size:clamp(15px,1.8vw,21px);color:var(--gray);
+  font-weight:300;max-width:660px;line-height:1.75}
+.s1-sub strong{color:var(--white);font-weight:500}
+
+/* ━━━ S2 ━━━ */
+#s2{background:var(--dark2)}
+.s2-wrap{display:grid;grid-template-columns:1fr 1fr;gap:60px;
+  width:min(1100px,92vw);align-items:center}
+.s2-left h2{font-size:clamp(22px,3vw,38px);font-weight:700;
+  color:var(--white);line-height:1.35;margin-bottom:32px}
+.s2-left h2 em{color:var(--gold);font-style:normal}
+.s2-item{display:flex;align-items:flex-start;gap:14px;margin-bottom:20px}
+.s2-item .ico{font-size:20px;margin-top:2px;flex-shrink:0}
+.s2-item p{font-size:15px;color:var(--gray);line-height:1.65;font-weight:300}
+.s2-item strong{color:var(--white);font-weight:500}
+.s2-right{display:flex;flex-direction:column;gap:16px;align-items:stretch}
+.s2-card{background:var(--dark3);border:1px solid var(--gray2);
+  border-radius:12px;padding:22px 26px}
+.s2-card .label{font-size:11px;color:var(--teal2);letter-spacing:.12em;
+  font-weight:500;margin-bottom:8px}
+.s2-card .big{font-size:clamp(26px,3.2vw,42px);font-weight:900;
+  color:var(--white);line-height:1.1}
+.s2-card .sub{font-size:13px;color:var(--gray);margin-top:6px}
+.s2-card.highlight{border-color:var(--gold);
+  background:linear-gradient(135deg,#1C2C10,#0C2010)}
+.s2-card.highlight .big{color:var(--gold)}
+
+/* ━━━ S3 ━━━ */
+#s3{background:var(--dark)}
+.s3-inner{max-width:1000px;width:92%;text-align:center}
+.s3-label{font-size:12px;color:var(--teal2);letter-spacing:.22em;
+  text-transform:uppercase;margin-bottom:36px}
+.s3-h{font-size:clamp(26px,3.8vw,52px);font-weight:700;color:var(--white);
+  line-height:1.3;margin-bottom:48px}
+.s3-h em{color:var(--teal2);font-style:normal}
+.reveal-box{background:var(--dark3);border:1px solid var(--teal);
+  border-radius:16px;padding:28px 36px;text-align:left;max-width:680px;margin:0 auto}
+.reveal-box .rb-title{font-size:14px;color:var(--teal2);
+  letter-spacing:.1em;font-weight:500;margin-bottom:16px}
+.reveal-row{display:flex;align-items:center;gap:20px;margin-bottom:14px}
+.reveal-row:last-child{margin-bottom:0}
+.rb-tag{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;
+  white-space:nowrap}
+.rb-tag.before{background:rgba(224,53,53,.18);color:#F08080;border:1px solid #E03535}
+.rb-tag.after{background:rgba(27,144,144,.18);color:var(--teal2);border:1px solid var(--teal)}
+.rb-arrow{color:var(--gray2);font-size:16px}
+.rb-desc{font-size:14px;color:var(--gray);flex:1;line-height:1.5}
+.rb-desc strong{color:var(--white)}
+.s3-caption{margin-top:36px;font-size:15px;color:var(--gray);
+  line-height:1.8;font-weight:300}
+.s3-caption strong{color:var(--white)}
+.s3-caption em{color:var(--teal2);font-style:normal}
+
+/* ━━━ S4 ━━━ */
+#s4{background:var(--dark);padding:0;justify-content:flex-start;padding-bottom:48px}
+.s4-header{display:flex;align-items:baseline;gap:16px;padding:28px 40px 12px;width:100%}
+.s4-header h2{font-size:20px;font-weight:700;color:var(--white)}
+.s4-header span{font-size:13px;color:var(--gray);font-weight:300}
+.s4-hint{font-size:11px;color:var(--teal2);letter-spacing:.1em;margin-left:auto}
+.s4-body{display:flex;flex:1;width:100%;min-height:0}
+#graph-svg{flex:1;min-width:0}
+
+.detail-panel{width:0;overflow:hidden;flex-shrink:0;
+  transition:width .45s cubic-bezier(.4,0,.2,1);
+  background:var(--dark2);border-left:1px solid var(--dark3);
+  display:flex;flex-direction:column;position:relative}
+.detail-panel.open{width:340px}
+.dp-header{padding:22px 20px 0}
+.dp-code{font-size:11px;color:var(--teal2);letter-spacing:.15em;font-weight:500}
+.dp-title{font-size:18px;font-weight:700;color:var(--white);margin-top:4px;line-height:1.3}
+.dp-sub{font-size:12px;color:var(--gray);margin-top:4px}
+.dp-formula{margin:14px 20px;padding:12px 14px;
+  background:var(--dark3);border-radius:6px;
+  font-size:12px;color:var(--gray);font-family:'Courier New',monospace;line-height:1.65}
+.dp-formula strong{color:var(--gold);font-family:'Noto Sans KR',sans-serif}
+.dp-verified{display:flex;align-items:center;gap:8px;
+  margin:0 20px 12px;padding:8px 12px;
+  background:rgba(27,144,144,.15);border:1px solid var(--teal);
+  border-radius:6px;font-size:12px;color:var(--teal2)}
+.dp-tabs{display:flex;border-bottom:1px solid var(--dark3);margin:0 20px}
+.dp-tab{padding:9px 11px;font-size:12px;color:var(--gray2);cursor:pointer;
+  border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+.dp-tab.on{color:var(--teal2);border-color:var(--teal2)}
+.dp-content{flex:1;overflow-y:auto;padding:0 20px 20px;scrollbar-width:thin}
+.dp-table{width:100%;border-collapse:collapse;margin-top:12px}
+.dp-table th{background:var(--dark3);color:var(--teal2);
+  font-size:11px;padding:8px 6px;font-weight:500;text-align:right}
+.dp-table th:first-child{text-align:left}
+.dp-table td{font-size:12px;color:#A0D8D8;padding:8px 6px;
+  border-bottom:1px solid var(--dark3);text-align:right}
+.dp-table td:first-child{text-align:left;color:var(--gray)}
+.dp-table tr:last-child td{color:var(--teal2);font-weight:700}
+.dp-close{position:absolute;top:16px;right:14px;background:transparent;
+  border:none;color:var(--gray2);font-size:18px;cursor:pointer;
+  transition:.2s;padding:4px 8px;border-radius:4px}
+.dp-close:hover{color:var(--white);background:rgba(255,255,255,.08)}
+.nosel-hint{display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;font-size:13px;color:var(--gray2);
+  text-align:center;line-height:1.7;
+  position:absolute;left:50%;top:55%;transform:translate(-50%,-50%)}
+.nosel-hint .ico{font-size:36px;opacity:.35}
+.inst-card{background:var(--dark3);border-radius:8px;
+  padding:12px 14px;margin-top:10px}
+.inst-card .iname{font-size:12px;font-weight:700;color:var(--white);margin-bottom:6px}
+.inst-card .iplan{font-weight:300;color:var(--gray);margin-left:8px;font-size:11px}
+.inst-card .iformula{font-size:11px;color:var(--gray);
+  font-family:'Courier New',monospace;line-height:1.8}
+.inst-card .iformula strong{color:var(--teal2);font-family:'Noto Sans KR',sans-serif}
+.glink{stroke:rgba(27,144,144,.3);stroke-width:1.2;fill:none}
+.gnode{cursor:pointer}
+.mc-node:hover circle{filter:brightness(1.3)}
+.selected-node circle{stroke:#FFB703 !important;stroke-width:3 !important}
+
+/* ━━━ S5 ━━━ */
+#s5{background:#F0F8F8}
+.s5-wrap{max-width:1100px;width:92%;text-align:center}
+.s5-eye{font-size:12px;color:var(--teal);letter-spacing:.22em;
+  text-transform:uppercase;font-weight:500;margin-bottom:20px}
+.s5-h{font-size:clamp(22px,3vw,40px);font-weight:700;
+  color:#111827;line-height:1.35;margin-bottom:48px}
+.s5-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.s5-card{background:white;border-radius:16px;padding:34px 28px;
+  box-shadow:0 2px 20px rgba(0,0,0,.07);text-align:left;
+  border-top:4px solid transparent;transition:transform .25s,box-shadow .25s}
+.s5-card:nth-child(1){border-top-color:#1B9090}
+.s5-card:nth-child(2){border-top-color:#E03535}
+.s5-card:nth-child(3){border-top-color:#FFB703}
+.s5-card:hover{transform:translateY(-5px);box-shadow:0 10px 32px rgba(0,0,0,.1)}
+.s5-ico{font-size:34px;margin-bottom:18px}
+.s5-kpi{font-size:clamp(36px,4vw,52px);font-weight:900;
+  color:#111827;line-height:1;margin-bottom:6px}
+.s5-kl{font-size:12px;color:#6B7A99;letter-spacing:.08em;margin-bottom:18px}
+.s5-ct{font-size:16px;font-weight:700;color:#111827;margin-bottom:10px}
+.s5-cd{font-size:14px;color:#4A5568;line-height:1.7;font-weight:300}
+
+/* ━━━ S6 ━━━ */
+#s6{background:var(--dark);text-align:center}
+.s6-wrap{max-width:820px;width:92%}
+.s6-tag{font-size:11px;color:var(--teal2);letter-spacing:.22em;
+  text-transform:uppercase;font-weight:500;margin-bottom:36px}
+.s6-h{font-size:clamp(26px,4vw,54px);font-weight:700;color:var(--white);
+  line-height:1.3;margin-bottom:18px}
+.s6-sub{font-size:clamp(14px,1.6vw,19px);color:var(--gray);
+  font-weight:300;line-height:1.7;margin-bottom:46px}
+.s6-steps{display:flex;align-items:flex-start;justify-content:center;margin-bottom:46px}
+.s6-step{flex:1;max-width:200px;text-align:center;position:relative}
+.s6-step:not(:last-child)::after{content:'';position:absolute;
+  top:17px;left:calc(50% + 20px);
+  width:calc(100% - 40px);height:1px;background:var(--gray2)}
+.s6-dot{width:36px;height:36px;border-radius:50%;background:var(--teal2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;margin:0 auto 14px}
+.s6-st{font-size:12px;color:var(--teal2);font-weight:500;margin-bottom:4px}
+.s6-sd{font-size:13px;color:var(--gray);line-height:1.55}
+.s6-cta{display:inline-flex;align-items:center;gap:10px;
+  background:var(--gold);color:#111;padding:16px 40px;border-radius:50px;
+  font-size:16px;font-weight:700;letter-spacing:.02em;
+  text-decoration:none;transition:.25s;margin-bottom:24px;cursor:pointer;border:none}
+.s6-cta:hover{background:var(--gold2);transform:translateY(-2px)}
+.s6-contact{font-size:13px;color:var(--gray2);line-height:1.8}
+.s6-contact a{color:var(--gray);text-decoration:none}
+.s6-contact a:hover{color:var(--gold)}
+
+/* ── RESPONSIVE ── */
+@media (max-width:960px){
+  .s2-wrap{grid-template-columns:1fr;gap:32px}
+  .s5-grid{grid-template-columns:1fr 1fr}
+  .reveal-box{padding:22px 24px}
+}
+@media (max-width:768px){
+  /* S4 헤더 부제목 숨김 — 공간 확보 */
+  .s4-header span:not(.s4-hint){display:none}
+}
+@media (max-width:640px){
+  /* 슬라이드 세로 스크롤 허용 */
+  .slide{overflow-y:auto;-webkit-overflow-scrolling:touch;
+    justify-content:flex-start;padding-top:52px;padding-bottom:60px}
+  /* 짧은 슬라이드는 중앙 정렬 유지 */
+  #s1,#s3,#s6{justify-content:center;padding-top:0}
+  /* S4는 그래프 레이아웃 고정 */
+  #s4{overflow:hidden;padding-top:0;padding-bottom:48px}
+  /* S1 */
+  .s1-h{padding:0 16px}
+  .s1-sub{padding:0 16px}
+  /* S2 */
+  .s2-wrap{width:96%}
+  .s2-card{padding:16px 18px}
+  .s2-card .big{font-size:clamp(22px,8vw,42px)}
+  /* S3 */
+  .s3-inner{width:96%}
+  .reveal-box{padding:18px 16px}
+  .reveal-row{flex-direction:column;gap:6px}
+  .rb-arrow{display:none}
+  /* S4 — 디테일 패널 오버레이 */
+  .s4-header{padding:12px 16px 8px;flex-wrap:wrap;gap:6px}
+  .s4-header h2{font-size:16px}
+  .s4-hint{width:100%;margin-left:0;font-size:10px}
+  .s4-body{position:relative}
+  .detail-panel{position:absolute;right:0;top:0;bottom:0;z-index:10}
+  .detail-panel.open{width:100% !important}
+  /* S5 */
+  .s5-wrap{padding:0 12px}
+  .s5-grid{grid-template-columns:1fr}
+  .s5-card{padding:22px 16px}
+  /* 데이터 바 2×2 그리드 */
+  .s5-statbar{flex-wrap:wrap}
+  .s5-stat{flex:0 0 50% !important;box-sizing:border-box}
+  .s5-stat:nth-child(2n){border-right:none !important}
+  .s5-stat:nth-child(-n+2){border-bottom:1px solid rgba(38,184,184,.2)}
+  /* S6 */
+  .s6-wrap{padding:0 16px}
+  .s6-steps{flex-direction:column;align-items:center;gap:0}
+  .s6-step{max-width:280px;width:100%}
+  .s6-step:not(:last-child)::after{display:none}
+  .s6-step:not(:last-child){border-bottom:1px solid var(--dark3);padding-bottom:16px;margin-bottom:16px}
+  .s6-cta{width:90%;justify-content:center;padding:14px 20px;font-size:15px}
+  /* 공통 */
+  .badge{font-size:9px;left:16px;top:20px}
+  .pgnum{right:16px;top:20px}
+  .co{display:none}
+  /* Nav 닷 — 좁은 화면 대응 */
+  .dot{width:5px;height:5px}
+  .dot.on{width:14px}
+  /* Company 슬라이드 */
+  .co-wrap{width:96%}
+}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ═ S1: QUESTION ═ -->
+<div class="slide active" id="s1">
+  <span class="badge">MVNO 사업자 제안서</span>
+  <span class="co">KNCSolutions</span>
+  <span class="pgnum">1 / 6</span>
+  <p class="s1-eye ai d1">MVNO 정산 검증 솔루션</p>
+  <h1 class="s1-h ai d2">
+    이번 달 MNO 청구서,<br>
+    <em>정말 맞는 금액인지</em><br>
+    확인하셨나요?
+  </h1>
+  <div class="s1-line ai d3"></div>
+  <p class="s1-sub ai d4">
+    확인할 방법이 없었습니다.<br>
+    이제 <strong>가입자 한 명의 정산 계산식까지</strong> 들여다볼 수 있습니다.
+  </p>
+</div>
+
+<!-- ═ S2: PROBLEM ═ -->
+<div class="slide" id="s2">
+  <span class="badge">구조적 문제</span>
+  <span class="pgnum">2 / 6</span>
+  <div class="s2-wrap">
+    <div class="s2-left">
+      <h2 class="ai d1">청구서를 받아도<br><em>확인할 수가 없습니다</em></h2>
+      <div class="s2-item ai d2">
+        <span class="ico">📄</span>
+        <p><strong>MNO 청구서 ≠ 계산 근거</strong><br>총액만 적혀 있습니다. 도매대가항목별 세부 내역이 없습니다</p>
+      </div>
+      <div class="s2-item ai d3">
+        <span class="ico">🔒</span>
+        <p><strong>정산 로직이 MNO에만 있습니다</strong><br>어떤 계산식으로 나온 금액인지 MVNO는 알 수 없습니다</p>
+      </div>
+      <div class="s2-item ai d4">
+        <span class="ico">💸</span>
+        <p><strong>과청구가 발생해도 모릅니다</strong><br>이의신청을 하려 해도 근거를 만들 도구가 없습니다</p>
+      </div>
+      <div class="s2-item ai d5">
+        <span class="ico">📉</span>
+        <p><strong>협상력이 없습니다</strong><br>숫자를 모르면 재계약에서 불리한 조건을 받습니다</p>
+      </div>
+    </div>
+    <div class="s2-right">
+      <div class="s2-card ai d2">
+        <div class="label">매월 MVNO가 받는 것</div>
+        <div class="big">1장</div>
+        <div class="sub">총액이 적힌 청구서 — 계산 근거 없음</div>
+      </div>
+      <div class="s2-card ai d3">
+        <div class="label">MVNO가 모르는 것</div>
+        <div class="big">약 40개</div>
+        <div class="sub">도매대가항목별 정산 로직 — MNO만 알고 있음</div>
+      </div>
+      <div class="s2-card highlight ai d4">
+        <div class="label">연간 잠재 과청구 위험</div>
+        <div class="big">수억 원</div>
+        <div class="sub">검증 도구 없이 그냥 납부합니다</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═ S3: THE REVERSAL ═ -->
+<div class="slide" id="s3">
+  <span class="badge">반전</span>
+  <span class="pgnum">3 / 6</span>
+  <div class="s3-inner">
+    <p class="s3-label ai d1">Game Changer</p>
+    <h2 class="s3-h ai d2">
+      MNO의 정산 구조를<br>
+      이제 <em>MVNO도</em> 볼 수 있습니다
+    </h2>
+    <div class="reveal-box ai d3">
+      <div class="rb-title">● 무엇이 달라지는가</div>
+      <div class="reveal-row">
+        <span class="rb-tag before">지금까지</span>
+        <span class="rb-arrow">→</span>
+        <span class="rb-desc">총액 청구서만 받고 납부. <strong>검증 불가</strong></span>
+      </div>
+      <div class="reveal-row">
+        <span class="rb-tag after">솔루션 도입 후</span>
+        <span class="rb-arrow">→</span>
+        <span class="rb-desc">도매대가항목 → 가입자까지 <strong>계산 과정 전체 가시화</strong></span>
+      </div>
+      <div class="reveal-row">
+        <span class="rb-tag after">이의신청 시</span>
+        <span class="rb-arrow">→</span>
+        <span class="rb-desc">가입자 단위 계산식으로 <strong>즉시 반증 자료 생성</strong></span>
+      </div>
+    </div>
+    <p class="s3-caption ai d4">
+      지식그래프가 MNO 정산 온톨로지를 <strong>MVNO 관점에서 재현</strong>합니다.<br>
+      <em>다음 화면에서 실제 계산식을 보여드립니다.</em>
+    </p>
+  </div>
+</div>
+
+<!-- ═ S4: LIVE DEMO ═ -->
+<div class="slide" id="s4">
+  <span class="pgnum">4 / 6</span>
+  <div class="s4-header ai d1">
+    <h2>정산 계산식 그래프</h2>
+    <span>가입자 한 명의 청구 금액이 어떻게 산출되는지 — 실제 솔루션 화면</span>
+    <span class="s4-hint">● 도매대가항목(빨간 노드) 클릭 → 계산식 상세 조회</span>
+  </div>
+  <div class="s4-body">
+    <svg id="graph-svg"></svg>
+    <div class="detail-panel" id="detail-panel">
+      <button class="dp-close" id="dp-close-btn">✕</button>
+      <div class="dp-header">
+        <div class="dp-code" id="dp-code">M0001</div>
+        <div class="dp-title" id="dp-title">가입자당단가</div>
+        <div class="dp-sub" id="dp-sub">청구 계산식 상세</div>
+      </div>
+      <div class="dp-verified">✅ MNO 계산식 검증 완료</div>
+      <div class="dp-formula" id="dp-formula">계산 방식: <strong>기본료 × 요율 × (사용일/전체일)</strong></div>
+      <div class="dp-tabs">
+        <div class="dp-tab on" onclick="setTab(0)">🧾 내 청구 내역</div>
+        <div class="dp-tab" onclick="setTab(1)">📦 요금제별</div>
+        <div class="dp-tab" onclick="setTab(2)">👤 가입자별</div>
+      </div>
+      <div class="dp-content" id="dp-content"></div>
+    </div>
+  </div>
+  <div class="nosel-hint" id="nosel-hint">
+    <div class="ico">🔍</div>
+    도매대가항목(빨간 노드)를 클릭하면<br>나의 청구 계산식을 확인할 수 있습니다
+  </div>
+</div>
+
+<!-- ═ S5: BENEFITS ═ -->
+<div class="slide" id="s5">
+  <span class="pgnum" style="color:#6B7A99">5 / 6</span>
+  <div class="s5-wrap">
+    <p class="s5-eye ai d1">도입 기대 효과</p>
+    <h2 class="s5-h ai d2">보이는 순간,<br>MVNO의 협상력이 달라집니다</h2>
+    <div class="ai d3 s5-statbar" style="display:flex;gap:0;background:rgba(38,184,184,.08);border-radius:10px;overflow:hidden;margin-bottom:24px;border:1px solid rgba(38,184,184,.25)">
+      <div class="s5-stat" style="flex:1;padding:12px 16px;border-right:1px solid rgba(38,184,184,.2);text-align:center">
+        <div style="font-size:10px;color:#6BCECE;letter-spacing:.1em;font-weight:500;margin-bottom:4px">GARTNER 조사</div>
+        <div style="font-size:24px;font-weight:900;color:#E03535">85%</div>
+        <div style="font-size:11px;color:#A0B4B4">통신 청구서에 오류 존재</div>
+      </div>
+      <div class="s5-stat" style="flex:1;padding:12px 16px;border-right:1px solid rgba(38,184,184,.2);text-align:center">
+        <div style="font-size:10px;color:#6BCECE;letter-spacing:.1em;font-weight:500;margin-bottom:4px">ABERDEEN 조사</div>
+        <div style="font-size:24px;font-weight:900;color:#26B8B8">7~12%</div>
+        <div style="font-size:11px;color:#A0B4B4">청구서 평균 오류율</div>
+      </div>
+      <div class="s5-stat" style="flex:1;padding:12px 16px;border-right:1px solid rgba(38,184,184,.2);text-align:center">
+        <div style="font-size:10px;color:#6BCECE;letter-spacing:.1em;font-weight:500;margin-bottom:4px">글로벌 감사 사례</div>
+        <div style="font-size:24px;font-weight:900;color:#26B8B8">19.3억</div>
+        <div style="font-size:11px;color:#A0B4B4">연간 절감 달성</div>
+      </div>
+      <div class="s5-stat" style="flex:1;padding:12px 16px;text-align:center">
+        <div style="font-size:10px;color:#6BCECE;letter-spacing:.1em;font-weight:500;margin-bottom:4px">그래프 기술 적용 시</div>
+        <div style="font-size:24px;font-weight:900;color:#26B8B8">+50%</div>
+        <div style="font-size:11px;color:#A0B4B4">오류 탐지율 향상</div>
+      </div>
+    </div>
+    <div class="s5-grid">
+      <div class="s5-card ai d4">
+        <div class="s5-ico">🔍</div>
+        <div class="s5-kpi">100<span style="font-size:.5em">%</span></div>
+        <div class="s5-kl">정산 내역 투명도</div>
+        <div class="s5-ct">검증됩니다</div>
+        <div class="s5-cd">도매대가항목별·가입자별 계산 근거가 투명하게 공개됩니다. 과청구 발생 즉시 발견하고 이의신청 자료를 1분 안에 만듭니다.</div>
+      </div>
+      <div class="s5-card ai d4">
+        <div class="s5-ico">💰</div>
+        <div class="s5-kpi">3~8<span style="font-size:.5em">%</span></div>
+        <div class="s5-kl">정산 비용 절감 사례</div>
+        <div class="s5-ct">절감됩니다</div>
+        <div class="s5-cd">숨겨진 과청구를 찾아냅니다. 월 정산 규모에 따라 연간 수천만~수억 원의 비용 절감이 발생할 수 있습니다.</div>
+      </div>
+      <div class="s5-card ai d5">
+        <div class="s5-ico">💪</div>
+        <div class="s5-kpi">데이터</div>
+        <div class="s5-kl">기반 협상</div>
+        <div class="s5-ct">협상력이 생깁니다</div>
+        <div class="s5-cd">재계약 협상 시 도매대가항목별 실사용 데이터를 근거로 제시합니다. 감에서 수치로, 불리한 조건에서 동등한 조건으로.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═ S6: CTA ═ -->
+<div class="slide" id="s6">
+  <span class="badge">다음 단계</span>
+  <span class="pgnum">6 / 6</span>
+  <div class="s6-wrap">
+    <p class="s6-tag ai d1">성과 공유 파트너십</p>
+    <h2 class="s6-h ai d2">찾아낸 절감액을<br>함께 나눕니다</h2>
+    <p class="s6-sub ai d3">
+      착수 비용 없이 시작합니다.<br>
+      과청구 발견 → 환급 금액 확정 → 절감액의 일정 비율을 성과 보수로 공유합니다.<br>
+      <span style="color:var(--teal2);font-weight:500">찾지 못하면 비용도 없습니다.</span>
+    </p>
+    <div class="s6-steps ai d4">
+      <div class="s6-step">
+        <div class="s6-dot">1</div>
+        <div class="s6-st">1단계</div>
+        <div class="s6-sd">청구 구조 분석<br>과청구 가능 항목 파악</div>
+      </div>
+      <div class="s6-step">
+        <div class="s6-dot">2</div>
+        <div class="s6-st">2단계</div>
+        <div class="s6-sd">지식그래프 검증<br>오류 금액 산출·증빙</div>
+      </div>
+      <div class="s6-step">
+        <div class="s6-dot">3</div>
+        <div class="s6-st">3단계</div>
+        <div class="s6-sd">환급 요청 지원<br>절감액 비율 협의 후 진행</div>
+      </div>
+    </div>
+    <a href="mailto:jk.kim@kncsolution.co.kr" class="s6-cta ai d5">
+      🤝&nbsp; 과청구 검증 파트너십 시작하기
+    </a>
+    <p class="s6-contact ai d6">
+      <a href="mailto:jk.kim@kncsolution.co.kr">jk.kim@kncsolution.co.kr</a>
+      &nbsp;|&nbsp; KNCSolutions &nbsp;|&nbsp; MVNO-2026-001
+    </p>
+  </div>
+</div>
+
+
+<!-- ═ COMPANY: ABOUT US ═ -->
+<div class="slide" id="company" style="background:var(--dark2)">
+  <style>
+  .co-wrap{display:flex;gap:56px;width:88%;max-width:1100px;align-items:flex-start}
+  .co-left{flex:1.1;display:flex;flex-direction:column;gap:28px}
+  .co-right{flex:1;display:flex;flex-direction:column;gap:24px}
+  .co-logo-block{display:flex;align-items:center;gap:16px}
+  .co-logo-mark{width:52px;height:52px;border-radius:10px;
+    background:linear-gradient(135deg,#1A6FCC 0%,#0EA5E9 100%);
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;font-weight:900;color:#fff;flex-shrink:0}
+  .co-logo-text{display:flex;flex-direction:column;gap:2px}
+  .co-logo-name{font-size:22px;font-weight:800;color:#fff}
+  .co-logo-name em{color:#26B8B8;font-style:normal}
+  .co-logo-kr{font-size:11px;color:var(--gray);letter-spacing:.1em}
+  .co-tagline{font-size:clamp(18px,2.2vw,28px);font-weight:700;color:#fff;
+    line-height:1.4;border-left:3px solid var(--teal2);padding-left:16px}
+  .co-desc{font-size:14px;color:var(--gray);line-height:1.8;font-weight:300}
+  .co-section-title{font-size:11px;color:var(--teal2);letter-spacing:.2em;
+    text-transform:uppercase;font-weight:600;margin-bottom:14px}
+  .co-item{display:flex;gap:14px;margin-bottom:16px;align-items:flex-start}
+  .co-ico{font-size:20px;flex-shrink:0;margin-top:2px}
+  .co-item-body strong{font-size:14px;color:#fff;display:block;margin-bottom:3px}
+  .co-item-body p{font-size:12px;color:var(--gray);line-height:1.6;margin:0}
+  .co-divider{height:1px;background:var(--dark3);margin:8px 0}
+  .co-contact-row{display:flex;align-items:center;gap:10px;
+    font-size:13px;color:var(--gray);padding:8px 0;
+    border-bottom:1px solid var(--dark3)}
+  .co-contact-row:last-child{border-bottom:none}
+  .co-contact-row .ico{font-size:16px}
+  .co-contact-row strong{color:#fff}
+  .co-badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .co-badge{background:rgba(38,184,184,.12);border:1px solid rgba(38,184,184,.3);
+    color:var(--teal2);font-size:10px;padding:3px 10px;border-radius:20px;letter-spacing:.05em}
+  @media(max-width:768px){.co-wrap{flex-direction:column;gap:32px}}
+  </style>
+  <div class="co-wrap ai d1">
+    <div class="co-left">
+      <div class="co-logo-block">
+        <img src="knc_logo_light.png" alt="KNCSolutions" style="height:60px;object-fit:contain;display:block">
+      </div>
+      <p class="co-tagline">통신 정산의 복잡함을<br>지식그래프로 단순하게</p>
+      <p class="co-desc">
+        KNCSolutions은 MVNO·MNO 통신 정산 온톨로지 전문 기업입니다.<br>
+        지식그래프 기반 솔루션으로 정산 관계를 처음으로 시각화하고,<br>
+        자동화·무결점화합니다.
+      </p>
+      <div class="co-badge-row">
+        <span class="co-badge">통신 정산</span>
+        <span class="co-badge">온톨로지</span>
+        <span class="co-badge">지식그래프</span>
+        <span class="co-badge">MVNO/MNO</span>
+        <span class="co-badge">성과 공유</span>
+      </div>
+    </div>
+    <div class="co-right">
+      <div>
+        <div class="co-section-title">핵심 역량</div>
+        <div class="co-item">
+          <span class="co-ico">🔷</span>
+          <div class="co-item-body">
+            <strong>온톨로지 설계</strong>
+            <p>약 40개 도매대가항목 완전 정의 — 관계가 보입니다</p>
+          </div>
+        </div>
+        <div class="co-item">
+          <span class="co-ico">⚡</span>
+          <div class="co-item-body">
+            <strong>정산 자동화</strong>
+            <p>가입자 단위 계산 자동화 · 60개 MVNO 동시 처리</p>
+          </div>
+        </div>
+        <div class="co-item">
+          <span class="co-ico">🤝</span>
+          <div class="co-item-body">
+            <strong>성과 공유 모델</strong>
+            <p>착수 비용 없음 · 절감액 비율로 보수 공유</p>
+          </div>
+        </div>
+      </div>
+      <div class="co-divider"></div>
+      <div>
+        <div class="co-section-title">Contact</div>
+        <div class="co-contact-row"><span class="ico">📧</span><span><strong>jk.kim@kncsolution.co.kr</strong></span></div>
+        <div class="co-contact-row"><span class="ico">🏢</span><span>KNCSolutions · 케이엔씨솔루션즈</span></div>
+        <div class="co-contact-row"><span class="ico">📄</span><span>MVNO-2026-001</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<div class="nav">
+  <button class="nbtn" onclick="go(-1)">←</button>
+  <div class="dots" id="dots"></div>
+  <span class="ncnt" id="ncnt">1 / 6</span>
+  <button class="nbtn" onclick="go(1)">→</button>
+</div>
+
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const N = slides.length;
+let cur = 0;
+const dotsEl = document.getElementById('dots');
+const ncntEl = document.getElementById('ncnt');
+for(let i=0;i<N;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' on':'');
+  d.onclick=()=>goTo(i);
+  dotsEl.appendChild(d);
+}
+function goTo(n){
+  if(n===cur) return;
+  n=Math.max(0,Math.min(N-1,n));
+  slides[cur].classList.remove('active');
+  slides[cur].classList.add('out');
+  const old=cur; cur=n;
+  slides[cur].classList.add('active');
+  setTimeout(()=>slides[old].classList.remove('out'),600);
+  dotsEl.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('on',i===cur));
+  ncntEl.textContent=`${cur+1} / ${N}`;
+  if(cur===3) setTimeout(initGraph,300);
+}
+function go(d){goTo(cur+d);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ') go(1);
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp') go(-1);
+});
+
+/* DATA — MVNO perspective (shows what MVNO is being charged) */
+const MDATA = {
+  M0001:{code:'M0001',name:'가입자당단가',sub:'내 청구 내역 검증',
+    formula:'<strong>기본료 × 요율 × (사용일 / 전체일)</strong>',
+    bills:[['내 회사','₩5.5M','₩5.3M','₩0.2M ⚠️'],['전월','₩5.3M','₩5.3M','0'],['2개월 전','₩5.1M','₩5.1M','0'],['누적 초과','','','₩0.2M']],
+    plans:[['LTE 150G','10,000원','80%','8,000원'],['LTE 100G','8,000원','75%','6,000원'],['선불 50G','5,000원','70%','3,500원']],
+    insts:[{nm:'나가입',pl:'LTE 150G',b:'10,000원',r:'80%',d:'30/30일',mno:'8,000원',my:'8,000원',diff:'0'},
+           {nm:'김알뜰',pl:'LTE 150G',b:'10,000원',r:'80%',d:'30/30일',mno:'8,400원',my:'8,000원',diff:'▲400원 ⚠️'},
+           {nm:'이선불',pl:'선불 50G',b:'5,000원',r:'70%',d:'15/30일',mno:'1,750원',my:'1,750원',diff:'0'}]},
+  M0003:{code:'M0003',name:'통화료',sub:'초과 통화 내역 검증',
+    formula:'<strong>초과 통화량(분) × 분당 단가 (1.8원/분)</strong>',
+    bills:[['내 회사','₩1.1M','₩1.0M','₩0.1M ⚠️'],['전월','₩1.0M','₩1.0M','0'],['합계','₩2.1M','₩2.0M','₩0.1M']],
+    plans:[['음성무제한','0원','—','0원'],['음성100분','1.8원/분','초과분 적용','변동']],
+    insts:[{nm:'나가입',pl:'음성100분',b:'1.8원',r:'초과 20분',d:'—',mno:'40원',my:'36원',diff:'▲4원'}]},
+  M0005:{code:'M0005',name:'데이터 사용료',sub:'데이터 과금 내역 검증',
+    formula:'<strong>초과 데이터(MB) × 2원/MB</strong>',
+    bills:[['내 회사','₩0.9M','₩0.9M','0'],['전월','₩0.8M','₩0.8M','0'],['합계','₩1.7M','₩1.7M','0']],
+    plans:[['무제한','0원','—','0원'],['3G 후 종량','2원/MB','초과 적용','변동']],
+    insts:[{nm:'나가입',pl:'3G 후 종량',b:'2원/MB',r:'500MB 초과',d:'—',mno:'1,000원',my:'1,000원',diff:'0'}]},
+};
+
+let activeTab=0, selectedNode=null;
+document.getElementById('dp-close-btn').onclick=closePanel;
+
+function openPanel(id){
+  const data=MDATA[id]; if(!data) return;
+  selectedNode=id;
+  document.getElementById('nosel-hint').style.display='none';
+  document.getElementById('dp-code').textContent=data.code;
+  document.getElementById('dp-title').textContent=data.name;
+  document.getElementById('dp-sub').textContent=data.sub;
+  document.getElementById('dp-formula').innerHTML='계산 방식: '+data.formula;
+  document.getElementById('detail-panel').classList.add('open');
+  setTab(0);
+  d3.selectAll('.gnode').classed('selected-node',d=>d&&d.id===id);
+}
+function closePanel(){
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('nosel-hint').style.display='';
+  selectedNode=null;
+  d3.selectAll('.gnode').classed('selected-node',false);
+}
+function setTab(i){
+  activeTab=i;
+  document.querySelectorAll('.dp-tab').forEach((t,j)=>t.classList.toggle('on',j===i));
+  if(!selectedNode) return;
+  const data=MDATA[selectedNode];
+  const el=document.getElementById('dp-content');
+  if(i===0){
+    el.innerHTML=`<table class="dp-table">
+      <tr><th>구분</th><th>MNO 청구</th><th>계산값</th><th>차이</th></tr>
+      ${data.bills.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}
+    </table>`;
+  } else if(i===1){
+    el.innerHTML=`<table class="dp-table">
+      <tr><th>요금제명</th><th>기본료</th><th>요율</th><th>정산액</th></tr>
+      ${data.plans.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}
+    </table>`;
+  } else {
+    if(!data.insts||!data.insts.length){
+      el.innerHTML='<div style="padding:24px;text-align:center;color:var(--gray2);font-size:13px">인스턴스 데이터 없음</div>';return;
+    }
+    el.innerHTML=data.insts.map(inst=>`
+      <div class="inst-card">
+        <div class="iname">👤 ${inst.nm}<span class="iplan">${inst.pl}</span></div>
+        <div class="iformula">
+          ${inst.b} × ${inst.r} × (${inst.d}) →
+          MNO: ${inst.mno} / 계산: ${inst.my}
+          ${inst.diff!=='0'?`<br><strong>차이: ${inst.diff}</strong>`:''}
+        </div>
+      </div>`).join('');
+  }
+}
+
+/* ── TOUCH SWIPE ── */
+let _tx=0,_ty=0;
+document.addEventListener('touchstart',e=>{
+  _tx=e.touches[0].clientX;_ty=e.touches[0].clientY;
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  const dx=_tx-e.changedTouches[0].clientX;
+  const dy=_ty-e.changedTouches[0].clientY;
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50) go(dx>0?1:-1);
+},{passive:true});
+
+/* D3 GRAPH */
+let graphInited=false;
+const GNODES=[
+  {id:'root',  lbl:['MVNO','정산검증'], lv:0, type:'root'},
+  {id:'sett',  lbl:['정산코드','체계'], lv:1, type:'cat'},
+  {id:'whole', lbl:['도매대가','항목'], lv:1, type:'cat'},
+  {id:'M0001', lbl:['M0001','가입자단가'], lv:2, type:'mc'},
+  {id:'M0003', lbl:['M0003','통화료'],    lv:2, type:'mc'},
+  {id:'M0005', lbl:['M0005','데이터'],    lv:2, type:'mc'},
+  {id:'M0009', lbl:['M0009','로밍'],      lv:2, type:'mc'},
+  {id:'M0012', lbl:['M0012','수익쉐어'],  lv:2, type:'mc'},
+  {id:'S0001', lbl:['S0001','후불일반'],  lv:3, type:'sc'},
+  {id:'S0002', lbl:['S0002','선불'],      lv:3, type:'sc'},
+  {id:'S0011', lbl:['S0011','초과통화'],  lv:3, type:'sc'},
+  {id:'S0020', lbl:['S0020','로밍일일'],  lv:3, type:'sc'},
+  {id:'i1',    lbl:['나가입'],            lv:4, type:'inst'},
+  {id:'i2',    lbl:['김알뜰'],            lv:4, type:'inst'},
+  {id:'i3',    lbl:['이선불'],            lv:4, type:'inst'},
+];
+const GLINKS=[
+  ['root','sett'],['root','whole'],
+  ['sett','M0001'],['sett','M0003'],['sett','M0005'],
+  ['whole','M0009'],['whole','M0012'],
+  ['M0001','S0001'],['M0001','S0002'],['M0003','S0011'],['M0009','S0020'],
+  ['S0001','i1'],['S0001','i2'],['S0002','i3'],
+];
+const TSIZE ={root:30,cat:22,mc:20,sc:15,inst:13};
+const TCOLOR={root:'#1B9090',cat:'#26B8B8',mc:'#E03535',sc:'#D46A0A',inst:'#BB8800'};
+const TFSIZE={root:9,cat:8,mc:8,sc:8,inst:8};
+
+function lightenHex(hex,amt){
+  const n=parseInt(hex.replace('#',''),16);
+  const r=Math.min(255,((n>>16)&0xff)+Math.round(amt*255));
+  const g=Math.min(255,((n>>8)&0xff)+Math.round(amt*200));
+  const b=Math.min(255,((n)&0xff)+Math.round(amt*255));
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+function initGraph(){
+  if(graphInited) return;
+  graphInited=true;
+  const svgEl=document.getElementById('graph-svg');
+  const W=svgEl.clientWidth||700, H=svgEl.clientHeight||500;
+  const LY={0:H*.08,1:H*.25,2:H*.47,3:H*.67,4:H*.85};
+  const byLv={};
+  GNODES.forEach(n=>(byLv[n.lv]=byLv[n.lv]||[]).push(n));
+  const pos={};
+  Object.entries(byLv).forEach(([lv,arr])=>{
+    const step=W/(arr.length+1);
+    arr.forEach((n,i)=>pos[n.id]={x:(i+1)*step,y:LY[lv]});
+  });
+  const svg=d3.select('#graph-svg');
+  const defs=svg.append('defs');
+  Object.entries(TCOLOR).forEach(([t,c])=>{
+    const rg=defs.append('radialGradient').attr('id','rg_'+t)
+      .attr('cx','38%').attr('cy','33%').attr('r','62%');
+    rg.append('stop').attr('offset','0%').attr('stop-color',lightenHex(c,.4));
+    rg.append('stop').attr('offset','100%').attr('stop-color',c);
+  });
+  svg.append('g').selectAll('line')
+    .data(GLINKS).enter().append('line').attr('class','glink')
+    .attr('x1',d=>pos[d[0]].x).attr('y1',d=>pos[d[0]].y)
+    .attr('x2',d=>pos[d[1]].x).attr('y2',d=>pos[d[1]].y);
+  const gn=svg.append('g').selectAll('g')
+    .data(GNODES).enter().append('g')
+    .attr('class',d=>'gnode'+(d.type==='mc'?' mc-node':''))
+    .attr('transform',d=>`translate(${pos[d.id].x},${pos[d.id].y})`)
+    .on('click',(_,d)=>{if(d.type==='mc') openPanel(d.id);});
+  gn.append('circle')
+    .attr('r',d=>TSIZE[d.type])
+    .attr('fill',d=>`url(#rg_${d.type})`)
+    .attr('stroke',d=>TCOLOR[d.type])
+    .attr('stroke-width',1.5);
+  gn.each(function(d){
+    const g=d3.select(this);
+    d.lbl.forEach((ln,li)=>{
+      g.append('text')
+        .attr('y',(li-(d.lbl.length-1)/2)*(TFSIZE[d.type]+2))
+        .attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('fill',li===0?'#fff':'rgba(255,255,255,.62)')
+        .attr('font-size',li===0?TFSIZE[d.type]:TFSIZE[d.type]-1)
+        .attr('font-weight',li===0?'700':'400')
+        .attr('pointer-events','none').text(ln);
+    });
+  });
+  svg.style('opacity',0).transition().duration(900).style('opacity',1);
+}
+</script>
+</body>
+</html>
