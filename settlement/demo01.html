@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/><title>MVNO 통합 v4 — 슬라이드 패널</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+:root{
+  --bg:#0a0f1e;--bg2:#0d1117;--bg3:#111827;--bg4:#1a2332;--bg5:#1f2d40;--bg6:#2d3748;
+  --bg-sel:#1d3461;--bg2a:#0d1117cc;
+  --txt:#e6edf3;--txt2:#c9d1d9;--txt3:#8b949e;--txt4:#6b7280;
+  --acc:#60a5fa;--acc2:#93c5fd;--gold:#fbbf24;--grn:#3fb950;--red:#f85149;
+  --bdr:#1a2332;--bdr2:#1f2d40;--shd:rgba(0,0,0,.5);
+  --wi-rst:#374151;
+  --g-bg:#0a0f1e;--g-nl:rgba(255,255,255,.9);--g-ns:rgba(255,255,255,.45);
+  --g-ll:#4b5563;--g-lsub:#2d3748;--g-lobj:#1e3a5f;
+  --g-cnt-bg:#111827cc;--g-cnt-bdr:#1f2d40;--g-cnt-txt:#6b7280;
+}
+body.light{
+  --bg:#f0f4f8;--bg2:#ffffff;--bg3:#ffffff;--bg4:#f8fafc;--bg5:#f1f5f9;--bg6:#e2e8f0;
+  --bg-sel:#dbeafe;--bg2a:#ffffffcc;
+  --txt:#1e293b;--txt2:#374151;--txt3:#64748b;--txt4:#94a3b8;
+  --acc:#2563eb;--acc2:#3b82f6;--gold:#d97706;--grn:#16a34a;--red:#dc2626;
+  --bdr:#e2e8f0;--bdr2:#e2e8f0;--shd:rgba(0,0,0,.12);
+  --wi-rst:#e2e8f0;
+  --g-bg:#e8eef6;--g-nl:rgba(15,23,42,.88);--g-ns:rgba(15,23,42,.5);
+  --g-ll:#64748b;--g-lsub:#94a3b8;--g-lobj:#3b82f6;
+  --g-cnt-bg:#ffffffcc;--g-cnt-bdr:#cbd5e1;--g-cnt-txt:#475569;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI','Malgun Gothic',sans-serif;background:var(--bg);color:var(--txt);height:100vh;overflow:hidden;display:flex;flex-direction:column;transition:background .25s,color .25s}
+#hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:var(--bg2a);backdrop-filter:blur(8px);border-bottom:1px solid var(--bdr);flex-shrink:0;z-index:30;position:relative}
+#hdr h1{font-size:15px;font-weight:700;color:var(--acc)}
+#hdr .sub{font-size:10px;color:var(--txt3);margin-top:2px}
+#hdr-btns{display:flex;gap:6px;align-items:center}
+.hb{padding:5px 12px;border:1px solid var(--bdr2);background:var(--bg4);color:var(--txt3);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s}
+.hb:hover,.hb.active{background:#1d4ed8;border-color:#1d4ed8;color:white}
+#btn-theme{padding:4px 9px;border:1px solid var(--bdr2);background:var(--bg4);border-radius:6px;cursor:pointer;font-size:15px;line-height:1.4;transition:all .15s;color:var(--txt)}
+#btn-theme:hover{background:var(--bg5)}
+#graph-area{flex:1;position:relative;overflow:hidden;background:var(--g-bg);transition:background .25s}
+#graph-svg{width:100%;height:100%}
+#hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;transition:opacity .5s}
+#hint h2{font-size:22px;font-weight:800;color:var(--acc);margin-bottom:8px}
+#hint p{font-size:13px;color:var(--txt4)}
+#slide{position:absolute;top:0;right:0;width:460px;height:100%;background:var(--bg3);border-left:1px solid var(--bdr2);transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:20;display:flex;flex-direction:column;overflow:hidden}
+#slide.open{transform:translateX(0)}
+#slide-hdr{padding:14px 16px;background:var(--bg2);border-bottom:1px solid var(--bdr2);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#slide-title{font-weight:700;font-size:14px;flex:1}
+#slide-close{width:28px;height:28px;background:var(--bg5);border:none;color:var(--txt3);border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+#slide-close:hover{background:var(--bg6);color:var(--txt)}
+#slide-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--bdr2);padding:0 4px;flex-shrink:0;overflow-x:hidden}
+#slide-tabs-mc{display:none;background:var(--bg2);border-bottom:1px solid var(--bdr2);padding:0 4px;flex-shrink:0}
+.sl-tab{padding:9px 8px;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt4);white-space:nowrap;flex:1;text-align:center}
+.sl-tab.active{border-bottom-color:var(--acc);color:var(--txt)}
+#slide-body{flex:1;overflow-y:auto;padding:14px;background:var(--bg3)}
+.cls-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;margin-bottom:4px}
+.cls-sub-lbl{font-size:11px;color:var(--txt4);margin-top:2px}
+.prop-chip{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;margin:2px;background:var(--bg5);color:var(--acc2);font-family:monospace}
+.rel-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bdr2);font-size:11px}
+.rel-arrow{color:var(--txt4);flex-shrink:0}
+.rel-lbl{color:var(--acc);font-weight:600;flex:1}
+.rel-target{color:var(--txt2)}
+.sub-item{border-radius:8px;padding:10px;margin-bottom:7px;cursor:pointer;border:1.5px solid var(--bdr2);background:var(--bg4);transition:all .2s}
+.sub-item:hover{border-color:var(--bg6);background:var(--bg5)}
+.sub-item.active{border-color:var(--acc);background:var(--bg-sel)}
+.si-name{font-weight:700;font-size:12px;margin-bottom:4px;color:var(--txt)}
+.si-meta{font-size:10px;color:var(--txt4);display:flex;gap:8px;flex-wrap:wrap}
+.si-amt{font-size:15px;font-weight:800;color:var(--gold);margin-top:4px}
+.det-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bdr2);font-size:12px}
+.det-row:last-child{border-bottom:none}
+.det-lbl{color:var(--txt4)}
+.det-val{font-weight:700;color:var(--txt)}
+#btn-sample{padding:5px 12px;border:1px solid #f59e0b66;background:#451a0322;color:#f59e0b;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s}
+#btn-sample:hover,#btn-sample.active{background:#92400e;border-color:#f59e0b;color:#fde68a}
+.inst-step{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr2);align-items:flex-start}
+.inst-step:last-child{border-bottom:none}
+.inst-node-badge{min-width:110px;padding:4px 8px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.03em;text-align:center}
+.inst-vals{flex:1}
+.inst-val-row{font-size:11px;color:var(--txt2);margin-bottom:2px}
+.inst-val-key{color:var(--txt4);font-size:10px}
+.inst-calc-box{margin-top:14px;padding:14px;background:var(--bg4);border-radius:10px;border:1.5px solid #fbbf2466}
+.inst-calc-title{font-size:10px;font-weight:700;color:#fbbf24;margin-bottom:8px;letter-spacing:.04em}
+.inst-calc-eq{font-size:20px;font-weight:900;color:#fde68a;text-align:center;margin:8px 0}
+.inst-calc-detail{font-size:11px;color:var(--txt3);text-align:center}
+.det-tot{background:var(--bg-sel);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.det-tot-lbl{font-size:11px;color:var(--acc2)}
+.det-tot-val{font-size:18px;font-weight:800;color:var(--gold)}
+.wi-lbl{font-size:10px;color:var(--txt4);font-weight:600;margin-bottom:4px}
+.wi-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.wi-slider{flex:1;accent-color:var(--acc)}
+.wi-val{width:40px;text-align:right;font-size:11px;font-weight:700;color:var(--acc)}
+.wi-input{width:100%;padding:7px 9px;background:var(--bg5);border:1px solid var(--bg6);border-radius:6px;color:var(--txt);font-size:12px}
+.wi-btn{width:100%;padding:9px;background:#7c3aed;border:none;border-radius:7px;color:white;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px}
+.wi-btn-reset{background:var(--wi-rst);color:var(--txt);margin-top:4px;border:1px solid var(--bdr2)}
+.cmp-table{width:100%;border-collapse:collapse;font-size:11px}
+.cmp-table th{background:var(--bg5);padding:6px;text-align:left;color:var(--txt4);font-weight:600;border-bottom:1px solid var(--bg6)}
+.cmp-table td{padding:6px;border-bottom:1px solid var(--bdr2);color:var(--txt)}
+.dp{color:var(--grn);font-weight:700}
+.dn{color:var(--red);font-weight:700}
+.bdg{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600}
+.bo{background:#d9730033;color:#e3b341}
+.bb{background:#1f6feb33;color:#60a5fa}
+.br{background:#f851491a;color:#f85149}
+#gtip{position:absolute;background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;padding:9px 11px;pointer-events:none;font-size:11px;max-width:200px;display:none;z-index:50;line-height:1.7;box-shadow:0 8px 24px var(--shd);color:var(--txt)}
+.nd{cursor:pointer}
+.nr{rx:8;ry:8;stroke-width:1.5;transition:all .3s}
+.nr.abs{stroke-dasharray:5 3}
+.nl{font-size:10.5px;fill:var(--g-nl);text-anchor:middle;dominant-baseline:middle;pointer-events:none;font-weight:700}
+.ns{font-size:8px;fill:var(--g-ns);text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.lp{fill:none;stroke-width:1.3}
+.ll{font-size:7.5px;fill:var(--g-ll);text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.path-animated .nr{animation:pulse 1.2s ease-in-out infinite}
+.dn2 .nr,.dn2 .nl,.dn2 .ns{opacity:.08}
+.dl2{opacity:.04!important}
+#counter{position:absolute;bottom:14px;left:14px;background:var(--g-cnt-bg);backdrop-filter:blur(4px);border:1px solid var(--g-cnt-bdr);border-radius:8px;padding:7px 12px;font-size:11px;color:var(--g-cnt-txt);transition:background .25s,border-color .25s}
+#counter span{color:var(--acc);font-weight:700}
+#path-btn{position:absolute;bottom:14px;left:140px;background:#7c3aed;border:none;border-radius:8px;padding:7px 14px;color:white;font-size:11px;font-weight:700;cursor:pointer;display:none}
+#path-btn:hover{background:#6d28d9}
+.cat-hdr{padding:5px 8px;margin:10px 0 3px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:center}
+.cat-hdr-lbl{font-size:10px;font-weight:700}
+.cat-hdr-amt{font-size:10px;color:var(--txt4)}
+.det-row-zero{opacity:.35}
+.neg-amt{color:var(--grn)!important}
+.srch-bar{display:flex;gap:5px;margin-bottom:10px;align-items:center}
+.srch-input{flex:1;padding:6px 9px;background:var(--bg5);border:1px solid var(--bg6);border-radius:6px;color:var(--txt);font-size:11px;outline:none}
+.srch-input:focus{border-color:var(--acc)}
+.srch-select{padding:6px 6px;background:var(--bg5);border:1px solid var(--bg6);border-radius:6px;color:var(--txt);font-size:10px;outline:none;cursor:pointer}
+.srch-chip{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--bdr2);background:var(--bg5);color:var(--txt4);white-space:nowrap}
+.srch-chip.on{background:#1d4ed8;border-color:#1d4ed8;color:white}
+.mvno-card{background:var(--bg4);border:1px solid var(--bdr2);border-radius:10px;padding:12px;margin-bottom:10px}
+.mvno-card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mvno-card-title{font-size:11px;font-weight:700;color:var(--txt)}
+.mvno-card-badge{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:700}
+.mvno-sum-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--bdr2)}
+.mvno-sum-row:last-child{border-bottom:none}
+.mvno-sum-lbl{color:var(--txt4);font-size:10px}
+.mvno-sum-val{font-weight:700;color:var(--txt)}
+.mvno-grand{background:linear-gradient(135deg,var(--bg-sel),var(--bg4));border:1px solid var(--acc);border-radius:10px;padding:12px;margin-bottom:10px}
+.mvno-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.mvno-stat{background:var(--bg4);border:1px solid var(--bdr2);border-radius:8px;padding:8px 10px;text-align:center}
+.mvno-stat-val{font-size:14px;font-weight:800;color:var(--gold)}
+.mvno-stat-lbl{font-size:9px;color:var(--txt4);margin-top:2px}
+.prod-section{margin-bottom:12px}
+.prod-hdr{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--bg5);border-radius:7px;cursor:pointer;margin-bottom:4px;border:1px solid var(--bdr2)}
+.prod-hdr:hover{background:var(--bg6)}
+.prod-hdr-name{font-size:11px;font-weight:700;color:var(--txt)}
+.prod-hdr-meta{font-size:10px;color:var(--txt4)}
+.prod-hdr-amt{font-size:12px;font-weight:800;color:var(--gold)}
+.prod-body{display:none;padding:0 4px}
+.prod-body.open{display:block}
+#tree-svg{width:100%;height:100%;display:none;position:absolute;top:0;left:0}
+.tlink{fill:none;stroke:var(--g-lsub);stroke-width:1.5;opacity:.7}
+.tnode-rect{stroke-width:1.5;transition:stroke .2s,fill .2s}
+.tnode-mno{fill:#7c3aed22;stroke:#7c3aed}
+.tnode-mvno{fill:var(--bg4);stroke:var(--acc)}
+.tnode-lbl{font-size:10px;fill:var(--g-nl);font-weight:700;pointer-events:none}
+.tnode-lbl-mno{font-size:13px;fill:#c084fc;font-weight:800}
+.tnode-amt{font-size:9px;fill:#fbbf24;pointer-events:none}
+.tnode-sub{font-size:8px;fill:var(--g-ns);pointer-events:none}
+.vb{padding:5px 11px;border:1px solid var(--bdr2);background:var(--bg4);color:var(--txt3);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s}
+.vb.active{background:#7c3aed;border-color:#7c3aed;color:white}
+#slide-drag{position:absolute;left:0;top:0;bottom:0;width:5px;cursor:col-resize;z-index:30;background:transparent;transition:background .15s}
+#slide-drag:hover,#slide-drag.dragging{background:var(--acc);opacity:.55}
+#tree-counter{position:absolute;bottom:14px;left:14px;background:var(--g-cnt-bg);backdrop-filter:blur(4px);border:1px solid var(--g-cnt-bdr);border-radius:8px;padding:7px 12px;font-size:11px;color:var(--g-cnt-txt);display:none}
+#tree-counter span{color:var(--acc);font-weight:700}
+#mvno-style-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:4px;background:var(--g-cnt-bg);backdrop-filter:blur(8px);border:1px solid var(--g-cnt-bdr);border-radius:20px;padding:4px 8px;z-index:15}
+.sb{padding:4px 13px;border:none;background:transparent;color:var(--g-cnt-txt);border-radius:14px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;white-space:nowrap}
+.sb:hover{background:var(--bg5)}
+.sb.active{background:var(--acc);color:white}
+.sb-sep{width:1px;height:16px;background:var(--g-cnt-bdr);display:inline-block;margin:0 2px}
+.sb-legend{font-size:10px;color:var(--g-cnt-txt);padding-left:8px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.ghost-dot{width:12px;height:12px;border-radius:50%;border:1.5px dashed #94a3b8;display:inline-block;flex-shrink:0}
+/* ── M코드 슬라이드 전용 ── */
+.mc-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+.mc-tbl th{background:var(--bg4);padding:6px 8px;text-align:left;color:var(--txt4);font-weight:600;border-bottom:1px solid var(--bg6);white-space:nowrap;font-size:10px}
+.mc-tbl td{padding:6px 8px;border-bottom:1px solid var(--bdr2);color:var(--txt);font-size:11px}
+.mc-tbl tr:hover td{background:var(--bg5)}
+.mc-tbl td.num{text-align:right;font-weight:700}
+.mc-tbl tr.tot-row td{background:var(--bg-sel);font-weight:800;color:var(--gold)}
+.mc-inst-item{border-radius:8px;padding:10px;margin-bottom:7px;cursor:pointer;border:1.5px solid var(--bdr2);background:var(--bg4);transition:all .2s}
+.mc-inst-item:hover{border-color:#ef444488;background:var(--bg5)}
+.mc-inst-item.active{border-color:#ef4444;background:#ef444411}
+.mc-calc-box{margin-top:10px;padding:12px;background:var(--bg5);border-radius:8px;border:1.5px solid #ef444455}
+.mc-plan-card{background:var(--bg4);border:1px solid var(--bdr2);border-radius:8px;padding:10px;margin-bottom:8px}
+.mc-section-hdr{font-size:10px;color:var(--txt4);font-weight:700;margin:10px 0 6px;padding-top:8px;border-top:1px solid var(--bdr2)}
+.mc-section-hdr:first-child{border-top:none;margin-top:0}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <div>
+    <h1>🔗 MVNO 정산 통합 시스템 <span style="font-size:11px;opacity:.6;font-weight:400">v4 — M코드 탭 슬라이드</span></h1>
+    <div class="sub">클래스 노드 클릭 → 인스턴스 패널 슬라이드인 · M코드 클릭 → MVNO/요금제/인스턴스 탭</div>
+  </div>
+  <div id="hdr-btns">
+    <button id="btn-theme" onclick="toggleTheme()" title="다크/화이트 모드 전환">🌙</button>
+    <button class="vb active" id="btn-view-ont" onclick="switchView('ontology')">🔗 온톨로지</button>
+    <button class="vb" id="btn-view-mvno" onclick="switchView('mvno')">🏢 MVNO 현황</button>
+    <span style="width:1px;height:18px;background:var(--bdr2);display:inline-block;margin:0 2px;vertical-align:middle"></span>
+    <button id="btn-sample" onclick="showSampleInstance()" title="나가입 고객 정산 추적 샘플">📋 나가입 샘플</button>
+    <span style="width:1px;height:18px;background:var(--bdr2);display:inline-block;margin:0 2px;vertical-align:middle" id="sep-filter"></span>
+    <button class="hb active" id="btn-all">전체</button>
+    <button class="hb" id="btn-cls">클래스만</button>
+    <button class="hb" id="btn-obj">관계만</button>
+    <button class="hb" id="btn-fit">⊡ Fit</button>
+    <button class="hb" id="btn-reset">초기화</button>
+  </div>
+</div>
+
+<div id="graph-area">
+  <svg id="graph-svg"></svg>
+  <svg id="tree-svg"></svg>
+  <div id="hint"><h2>클래스 노드를 클릭하세요</h2><p>온톨로지 클래스를 클릭하면<br>연관 정산 데이터가 슬라이드됩니다</p></div>
+  <div id="counter">클래스 <span id="cnt-nodes">26</span>개 · 관계 <span id="cnt-links">31</span>개</div>
+  <div id="tree-counter">MNO <span>1</span>개 · MVNO <span>50</span>개 · 전월 정산 현황</div>
+  <div id="mvno-style-bar">
+    <button class="sb active" id="btn-style-bubble" onclick="switchMVNOStyle('bubble')">🫧 버블</button>
+    <button class="sb" id="btn-style-radial" onclick="switchMVNOStyle('radial')">🌐 방사형</button>
+    <span class="sb-sep"></span>
+    <span class="sb-legend"><span class="ghost-dot"></span> 전전달 규모</span>
+  </div>
+  <button id="path-btn" onclick="togglePathAnim()">✨ 정산 흐름 애니메이션</button>
+  <div id="gtip"></div>
+</div>
+
+<!-- 슬라이드 패널 -->
+<div id="slide">
+  <div id="slide-drag"></div>
+  <div id="slide-hdr">
+    <div id="slide-color-bar" style="width:4px;height:28px;border-radius:2px;background:#60a5fa"></div>
+    <div id="slide-title">클래스 정보</div>
+    <button id="slide-close" onclick="closeSlide()">✕</button>
+  </div>
+  <!-- 일반 클래스 탭 -->
+  <div id="slide-tabs">
+    <div class="sl-tab active" data-stab="info">📐 클래스</div>
+    <div class="sl-tab" data-stab="mvno">🏢 MVNO</div>
+    <div class="sl-tab" data-stab="prod">📦 요금제</div>
+    <div class="sl-tab" data-stab="instances">👥 인스턴스</div>
+    <div class="sl-tab" data-stab="calc">🧮 정산</div>
+    <div class="sl-tab" data-stab="whatif">⚡ What-if</div>
+  </div>
+  <!-- M코드 전용 탭 -->
+  <div id="slide-tabs-mc">
+    <div class="sl-tab active" data-mctab="mc-mvno">🏢 MVNO 정산</div>
+    <div class="sl-tab" data-mctab="mc-plan">📦 요금제</div>
+    <div class="sl-tab" data-mctab="mc-inst">👥 인스턴스</div>
+  </div>
+  <div id="slide-body">
+    <div id="sl-info" class="sl-content"></div>
+    <div id="sl-mvno" class="sl-content" style="display:none"></div>
+    <div id="sl-prod" class="sl-content" style="display:none"></div>
+    <div id="sl-instances" class="sl-content" style="display:none"></div>
+    <div id="sl-calc" class="sl-content" style="display:none"></div>
+    <div id="sl-whatif" class="sl-content" style="display:none"></div>
+    <!-- M코드 전용 콘텐츠 -->
+    <div id="sl-mc-mvno" class="sl-content" style="display:none"></div>
+    <div id="sl-mc-plan" class="sl-content" style="display:none"></div>
+    <div id="sl-mc-inst" class="sl-content" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// 공유 데이터
+// ═══════════════════════════════════════════════
+const BILLING={year:2025,month:6,totalDays:30};
+const PRODUCTS=[
+  {id:'P001',name:'데이터무한100G',   type:'bundled',baseFee:10000,includedData:100,includedVoice:100,includedVideo:0,includedSMS:200},
+  {id:'P002',name:'데이터50G음성200분',type:'bundled',baseFee:7000, includedData:50, includedVoice:200,includedVideo:0,includedSMS:100},
+  {id:'P003',name:'음성전용300분',    type:'voice',  baseFee:5000, includedData:0,  includedVoice:300,includedVideo:0,includedSMS:100},
+];
+const SETT_CATS=[
+  {id:'basic',    name:'기본료/단가',  color:'#3b82f6'},
+  {id:'fee',      name:'수수료',       color:'#10b981'},
+  {id:'prepaid',  name:'선불',         color:'#f59e0b'},
+  {id:'excess',   name:'초과종량',     color:'#ef4444'},
+  {id:'volume',   name:'총량',         color:'#8b5cf6'},
+  {id:'subscrvol',name:'가입자총량',   color:'#06b6d4'},
+  {id:'rs',       name:'RS/특수',      color:'#ec4899'},
+];
+const SETT_DEFS=[
+  {id:'i01',cat:'basic',    name:'기본료도매수수료(일반)',   unit:'일할계산'},
+  {id:'i02',cat:'basic',    name:'가입자당단가(정액선불)',   unit:'원/가입자'},
+  {id:'i03',cat:'basic',    name:'가입자당단가(eSIM)',       unit:'원/가입자'},
+  {id:'i04',cat:'basic',    name:'기간이전단가',            unit:'원'},
+  {id:'i05',cat:'basic',    name:'기간이후단가',            unit:'원'},
+  {id:'i06',cat:'fee',      name:'과금대행수수료',          unit:'원/건'},
+  {id:'i07',cat:'fee',      name:'청구대행수수료',          unit:'원/건'},
+  {id:'i08',cat:'fee',      name:'영업전산수수료',          unit:'원/건'},
+  {id:'i09',cat:'fee',      name:'수납대행수수료',          unit:'원/건'},
+  {id:'i10',cat:'prepaid',  name:'선불 음성 국제이용료',    unit:'원/분'},
+  {id:'i11',cat:'prepaid',  name:'선불 SMS 국제이용료',     unit:'원/건'},
+  {id:'i12',cat:'prepaid',  name:'선불 정보이용료',         unit:'원'},
+  {id:'i13',cat:'prepaid',  name:'선불 부가서비스',         unit:'원'},
+  {id:'i14',cat:'prepaid',  name:'부가서비스 인센티브',     unit:'원'},
+  {id:'i15',cat:'prepaid',  name:'일반선불 충전',           unit:'원'},
+  {id:'i16',cat:'excess',   name:'음성 초과종량',           unit:'원/분'},
+  {id:'i17',cat:'excess',   name:'영상 초과종량',           unit:'원/분'},
+  {id:'i18',cat:'excess',   name:'SMS,MMS 초과종량',        unit:'원/건'},
+  {id:'i19',cat:'excess',   name:'데이터 초과종량',         unit:'원/MB'},
+  {id:'i20',cat:'volume',   name:'음성 총량',               unit:'원/분'},
+  {id:'i21',cat:'volume',   name:'영상 총량',               unit:'원/분'},
+  {id:'i22',cat:'volume',   name:'SMS 총량',                unit:'원/건'},
+  {id:'i23',cat:'volume',   name:'MMS_텍스트 총량',         unit:'원/건'},
+  {id:'i24',cat:'volume',   name:'MMS_사진_영상 총량',      unit:'원/건'},
+  {id:'i25',cat:'volume',   name:'데이터 총량',             unit:'원/GB'},
+  {id:'i26',cat:'volume',   name:'미니멈_총량',            unit:'원'},
+  {id:'i27',cat:'subscrvol',name:'착신수수료',              unit:'원/분'},
+  {id:'i28',cat:'subscrvol',name:'음성 가입자총량',         unit:'원/분'},
+  {id:'i29',cat:'subscrvol',name:'SMS 가입자총량',          unit:'원/건'},
+  {id:'i30',cat:'subscrvol',name:'데이터 가입자총량',       unit:'원/GB'},
+  {id:'i31',cat:'rs',       name:'청구기준(RS)',            unit:'%'},
+  {id:'i32',cat:'rs',       name:'수납기준(RS)',            unit:'%'},
+  {id:'i33',cat:'rs',       name:'청구기준(RS) 차감',       unit:'%'},
+  {id:'i34',cat:'rs',       name:'후불부가서비스 인센티브', unit:'원'},
+  {id:'i35',cat:'rs',       name:'위약금',                 unit:'원'},
+  {id:'i36',cat:'rs',       name:'무제한로밍',              unit:'원/가입자'},
+  {id:'i37',cat:'rs',       name:'GL수납금액',              unit:'원'},
+  {id:'i38',cat:'rs',       name:'데이터선구매',            unit:'원/GB'},
+  {id:'i39',cat:'rs',       name:'GR할인',                 unit:'%'},
+];
+const RATES={
+  P001:{wholesaleRate:.50,subUnitPrepaid:500,subUnitESIM:300,prePeriodUnit:1000,postPeriodUnit:800,
+    billingChargeFee:50,billingAgencyFee:100,bizSystemFee:80,collectionFee:200,
+    intlVoiceRate:50,intlSMSRate:20,prepaidInfoFee:200,prepaidVAS:1000,vasIncentive:-500,prepaidChargeRate:.05,
+    excessVoiceRate:1.8,excessVideoRate:3.0,excessSMSRate:10,excessDataRate:.5,
+    voiceTotalRate:1.5,videoTotalRate:2.5,smsTotalRate:8,mmsTextRate:15,mmsMediaRate:25,dataTotalRate:500,minimumTotal:3000,
+    incomingFeeRate:.5,subVoiceTotalRate:1.2,subSMSTotalRate:6,subDataTotalRate:400,
+    rsBillingRate:.03,rsCollectionRate:.03,rsDeductRate:.01,postpaidVASIncentive:-500,
+    penalty:0,unlimitedRoamingFee:0,glCollection:0,dataPrepurchaseRate:450,grDiscountRate:.05},
+  P002:{wholesaleRate:.45,subUnitPrepaid:400,subUnitESIM:300,prePeriodUnit:900,postPeriodUnit:700,
+    billingChargeFee:50,billingAgencyFee:100,bizSystemFee:80,collectionFee:200,
+    intlVoiceRate:50,intlSMSRate:20,prepaidInfoFee:200,prepaidVAS:1000,vasIncentive:-400,prepaidChargeRate:.05,
+    excessVoiceRate:1.5,excessVideoRate:3.0,excessSMSRate:10,excessDataRate:.5,
+    voiceTotalRate:1.3,videoTotalRate:2.5,smsTotalRate:7,mmsTextRate:12,mmsMediaRate:20,dataTotalRate:450,minimumTotal:2500,
+    incomingFeeRate:.5,subVoiceTotalRate:1.0,subSMSTotalRate:5,subDataTotalRate:350,
+    rsBillingRate:.03,rsCollectionRate:.03,rsDeductRate:.01,postpaidVASIncentive:-400,
+    penalty:0,unlimitedRoamingFee:0,glCollection:0,dataPrepurchaseRate:400,grDiscountRate:.05},
+  P003:{wholesaleRate:.50,subUnitPrepaid:500,subUnitESIM:300,prePeriodUnit:800,postPeriodUnit:600,
+    billingChargeFee:50,billingAgencyFee:100,bizSystemFee:80,collectionFee:200,
+    intlVoiceRate:60,intlSMSRate:25,prepaidInfoFee:300,prepaidVAS:500,vasIncentive:-300,prepaidChargeRate:.05,
+    excessVoiceRate:2.0,excessVideoRate:0,excessSMSRate:15,excessDataRate:0,
+    voiceTotalRate:1.8,videoTotalRate:0,smsTotalRate:10,mmsTextRate:18,mmsMediaRate:0,dataTotalRate:0,minimumTotal:2000,
+    incomingFeeRate:.5,subVoiceTotalRate:1.5,subSMSTotalRate:8,subDataTotalRate:0,
+    rsBillingRate:.03,rsCollectionRate:.03,rsDeductRate:.01,postpaidVASIncentive:-300,
+    penalty:0,unlimitedRoamingFee:0,glCollection:0,dataPrepurchaseRate:0,grDiscountRate:.05},
+};
+const SUBSCRIBERS=[
+  {id:'S001',name:'홍길동 (John)',productId:'P001',joinDate:'2025-06-15',
+   isESIM:false,isPrepaid:false,hasRoaming:false,
+   usedVoice:80,usedVideo:10,usedSMS:45,usedMMSText:3,usedMMSMedia:2,
+   usedData:85,intlVoice:0,intlSMS:0,incomingVoice:120,dataPrepurchased:0,prepaidChargeAmt:0},
+  {id:'S002',name:'이영희 (Jane)',productId:'P002',joinDate:'2025-05-10',
+   isESIM:true,isPrepaid:false,hasRoaming:false,
+   usedVoice:250,usedVideo:30,usedSMS:120,usedMMSText:8,usedMMSMedia:5,
+   usedData:55,intlVoice:5,intlSMS:3,incomingVoice:200,dataPrepurchased:5,prepaidChargeAmt:0},
+  {id:'S003',name:'김철수 (Bob)',productId:'P003',joinDate:'2025-01-01',
+   isESIM:false,isPrepaid:true,hasRoaming:false,
+   usedVoice:380,usedVideo:0,usedSMS:200,usedMMSText:0,usedMMSMedia:0,
+   usedData:0,intlVoice:2,intlSMS:5,incomingVoice:300,dataPrepurchased:0,prepaidChargeAmt:10000},
+];
+
+function calcDays(join,p){
+  const j=new Date(join),ps=new Date(p.year,p.month-1,1),pe=new Date(p.year,p.month,0);
+  const s=j>ps?j:ps;
+  return Math.min(Math.max(0,Math.floor((pe-s)/86400000)+1),p.totalDays);
+}
+function calcAllItems(sub,prod,rate,period,ov={}){
+  const r={...rate,...ov};
+  const ws=ov._sub?{...sub,...ov._sub}:sub;
+  const days=calcDays(ws.joinDate,period);
+  const joinedBefore=new Date(ws.joinDate)<=new Date(period.year,period.month-1,1);
+  const excV=Math.max(0,(ws.usedVoice||0)-(prod.includedVoice||0));
+  const excVid=Math.max(0,(ws.usedVideo||0)-(prod.includedVideo||0));
+  const excSMS=Math.max(0,((ws.usedSMS||0)+(ws.usedMMSText||0)+(ws.usedMMSMedia||0))-(prod.includedSMS||0));
+  const excData=Math.max(0,(ws.usedData||0)-(prod.includedData||0));
+  const i01=prod.baseFee*r.wholesaleRate*(days/period.totalDays);
+  const i02=ws.isPrepaid?r.subUnitPrepaid:0;
+  const i03=ws.isESIM?r.subUnitESIM:0;
+  const i04=joinedBefore?r.prePeriodUnit:0;
+  const i05=r.postPeriodUnit;
+  const i06=r.billingChargeFee;
+  const i07=r.billingAgencyFee;
+  const i08=r.bizSystemFee;
+  const i09=r.collectionFee;
+  const i10=(ws.intlVoice||0)*r.intlVoiceRate;
+  const i11=(ws.intlSMS||0)*r.intlSMSRate;
+  const i12=ws.isPrepaid?r.prepaidInfoFee:0;
+  const i13=ws.isPrepaid?r.prepaidVAS:0;
+  const i14=ws.isPrepaid?r.vasIncentive:0;
+  const i15=ws.isPrepaid?(ws.prepaidChargeAmt||0)*r.prepaidChargeRate:0;
+  const i16=excV*r.excessVoiceRate;
+  const i17=excVid*r.excessVideoRate;
+  const i18=excSMS*r.excessSMSRate;
+  const i19=excData*1024*r.excessDataRate;
+  const i20=(ws.usedVoice||0)*r.voiceTotalRate;
+  const i21=(ws.usedVideo||0)*r.videoTotalRate;
+  const i22=(ws.usedSMS||0)*r.smsTotalRate;
+  const i23=(ws.usedMMSText||0)*r.mmsTextRate;
+  const i24=(ws.usedMMSMedia||0)*r.mmsMediaRate;
+  const i25=(ws.usedData||0)*r.dataTotalRate;
+  const i26=r.minimumTotal;
+  const i27=(ws.incomingVoice||0)*r.incomingFeeRate;
+  const i28=(ws.usedVoice||0)*r.subVoiceTotalRate;
+  const i29=(ws.usedSMS||0)*r.subSMSTotalRate;
+  const i30=(ws.usedData||0)*r.subDataTotalRate;
+  const base30=[i01,i02,i03,i04,i05,i06,i07,i08,i09,i10,i11,i12,i13,i14,i15,
+    i16,i17,i18,i19,i20,i21,i22,i23,i24,i25,i26,i27,i28,i29,i30];
+  const rsBase=base30.reduce((a,b)=>a+(b>0?b:0),0);
+  const i31=rsBase*r.rsBillingRate;
+  const i32=rsBase*r.rsCollectionRate;
+  const i33=-(rsBase*r.rsDeductRate);
+  const i34=ws.isPrepaid?0:r.postpaidVASIncentive;
+  const i35=r.penalty;
+  const i36=ws.hasRoaming?r.unlimitedRoamingFee:0;
+  const i37=r.glCollection;
+  const i38=(ws.dataPrepurchased||0)*r.dataPrepurchaseRate;
+  const i39=-(rsBase*r.grDiscountRate);
+  const amounts=[i01,i02,i03,i04,i05,i06,i07,i08,i09,i10,i11,i12,i13,i14,i15,
+    i16,i17,i18,i19,i20,i21,i22,i23,i24,i25,i26,i27,i28,i29,i30,
+    i31,i32,i33,i34,i35,i36,i37,i38,i39];
+  const total=amounts.reduce((a,b)=>a+b,0);
+  return{days,amounts,total,excV,excVid,excSMS,excData,rsBase};
+}
+function calcSett(sub,prod,rate,period,ov={}){return calcAllItems(sub,prod,rate,period,ov);}
+function fmt(n){if(n===0)return'—';const r=Math.round(Math.abs(n));return(n<0?'-':'')+r.toLocaleString('ko-KR')+'원';}
+function fmtN(n){return Math.round(n).toLocaleString('ko-KR')+'원';}
+
+// ═══════════════════════════════════════════════
+// 온톨로지 데이터
+// ═══════════════════════════════════════════════
+const DOMAINS={
+  party:{label:'Party',color:'#3b82f6'},product:{label:'Product',color:'#10b981'},
+  rate:{label:'Rate',color:'#f59e0b'},billing:{label:'Billing',color:'#8b5cf6'},
+  usage:{label:'Usage',color:'#06b6d4'},settlement:{label:'Settlement',color:'#ef4444'},
+  invoice:{label:'Invoice',color:'#ec4899'},contract:{label:'Contract',color:'#84cc16'},
+  source:{label:'SourceData',color:'#f97316'},
+};
+const CLASS_META={
+  Subscriber:{props:['subscriberName','joinDate','terminationDate'],desc:'통신 서비스를 이용하는 실제 가입자'},
+  MVNO:{props:['(없음)'],desc:'가상이동통신망사업자. MNO 망을 빌려 서비스 제공'},
+  MNO:{props:['(없음)'],desc:'실제 망을 보유한 이동통신사 (KT, SKT, LGU+)'},
+  Product:{props:['productName','baseFee','includedDataGB','includedVoiceMin'],desc:'MVNO가 제공하는 통신 상품'},
+  BundledProduct:{props:['(Product 상속)'],desc:'데이터+음성 결합 상품'},
+  VoiceProduct:{props:['(Product 상속)'],desc:'음성 전용 상품'},
+  SettlementRate:{props:['wholesaleRateBaseFee','agencyFeeBilling','agencyFeeCollection','excessVoiceRatePerMin','rateValidFrom','rateValidTo'],desc:'MVNO별·상품별 정산 요율 (버전 관리)'},
+  BillingPeriod:{props:['periodYear','periodMonth','totalDaysInMonth'],desc:'월별 정산 기간 단위'},
+  SettlementItem:{props:['itemAmount'],desc:'개별 정산 항목 (추상 클래스)'},
+  BaseFeeWholesaleItem:{props:['activedays','itemAmount'],desc:'기본료×요율×(활성일/월일수) 계산 항목'},
+  RawData:{props:['sourceSystem','extractedAt'],desc:'외부 시스템에서 수집한 원본 데이터 컨테이너 (추상)'},
+  CustomerRegistration:{props:['subscriberId','joinDate','terminationDate','activeDays','productId','mnoProductId'],desc:'고객가입 원본 데이터. 당월 활성 가입자 현황'},
+  CustomerRegistrationHistory:{props:['subscriberId','changeType','changeDate','beforeProductId','afterProductId'],desc:'고객가입 이력 데이터. 중도 가입·해지·상품변경 이력'},
+  MNOProduct:{props:['mnoProductId','mnoProductName','baseFee','includedVoiceMin'],desc:'MNO가 제공하는 망도매 상품 (모요금제)'},
+  BillingAgencyFeeItem:{props:['itemAmount'],desc:'청구 대행 수수료 항목 (건당 고정)'},
+  CollectionAgencyFeeItem:{props:['itemAmount'],desc:'수납 대행 수수료 항목 (건당 고정)'},
+  ExcessVoiceChargeItem:{props:['excessVoiceMin','itemAmount'],desc:'무료 제공분 초과 음성 도매수수료'},
+  Invoice:{props:['totalAmount','invoiceStatus'],desc:'월별 MVNO 정산서'},
+  UsageRecord:{props:['usageVolume'],desc:'가입자 사용량 기록 (추상 클래스)'},
+  VoiceUsage:{props:['usedVoiceMin'],desc:'음성 통화 사용량'},
+  DataUsage:{props:['usedDataGB'],desc:'데이터 사용량'},
+};
+const OWL_NODES=[
+  {id:'BusinessEntity',domain:'party',abstract:true,label:'BusinessEntity',sub:'사업주체'},
+  {id:'Operator',domain:'party',abstract:true,label:'Operator',sub:'통신사업자'},
+  {id:'MNO',domain:'party',label:'MNO',sub:'망제공통신사'},
+  {id:'MVNO',domain:'party',label:'MVNO',sub:'가상이동통신망'},
+  {id:'Subscriber',domain:'party',label:'Subscriber',sub:'가입자'},
+  {id:'SIM',domain:'party',label:'SIM',sub:'SIM카드'},
+  {id:'Product',domain:'product',abstract:true,label:'Product',sub:'통신상품'},
+  {id:'DataProduct',domain:'product',label:'DataProduct',sub:'데이터상품'},
+  {id:'VoiceProduct',domain:'product',label:'VoiceProduct',sub:'음성상품'},
+  {id:'BundledProduct',domain:'product',label:'BundledProduct',sub:'결합상품'},
+  {id:'SettlementRate',domain:'rate',label:'SettlementRate',sub:'정산요율'},
+  {id:'BillingPeriod',domain:'billing',label:'BillingPeriod',sub:'정산기간'},
+  {id:'UsageRecord',domain:'usage',abstract:true,label:'UsageRecord',sub:'사용량기록'},
+  {id:'VoiceUsage',domain:'usage',label:'VoiceUsage',sub:'음성사용량'},
+  {id:'DataUsage',domain:'usage',label:'DataUsage',sub:'데이터사용량'},
+  {id:'SettlementItem',domain:'settlement',abstract:true,label:'SettlementItem',sub:'정산항목'},
+  {id:'BaseFeeWholesaleItem',domain:'settlement',label:'BaseFeeWholesale',sub:'기본료도매수수료'},
+  {id:'AgencyFeeItem',domain:'settlement',abstract:true,label:'AgencyFeeItem',sub:'대행수수료'},
+  {id:'BillingAgencyFeeItem',domain:'settlement',label:'BillingAgencyFee',sub:'청구대행'},
+  {id:'CollectionAgencyFeeItem',domain:'settlement',label:'CollectionAgencyFee',sub:'수납대행'},
+  {id:'ExcessVoiceChargeItem',domain:'settlement',label:'ExcessVoiceCharge',sub:'음성초과'},
+  {id:'RawData',domain:'source',abstract:true,label:'RawData',sub:'원본데이터(Source)'},
+  {id:'CustomerRegistration',domain:'source',label:'CustomerRegistration',sub:'고객가입'},
+  {id:'CustomerRegistrationHistory',domain:'source',label:'CustRegHistory',sub:'고객가입이력'},
+  {id:'MNOProduct',domain:'product',label:'MNOProduct',sub:'MNO상품(모요금제)'},
+  {id:'Invoice',domain:'invoice',label:'Invoice',sub:'정산서'},
+  {id:'Contract',domain:'contract',label:'Contract',sub:'MNO-MVNO계약'},
+  {id:'ContractTerm',domain:'contract',abstract:true,label:'ContractTerm',sub:'계약조건'},
+  {id:'RevenueShareTerm',domain:'contract',label:'RevenueShareTerm',sub:'수익배분'},
+  {id:'MinimumGuaranteeTerm',domain:'contract',label:'MinGuaranteeTerm',sub:'최소보장'},
+];
+const OWL_LINKS=[
+  {s:'Operator',t:'BusinessEntity',type:'sub'},{s:'MNO',t:'Operator',type:'sub'},
+  {s:'MVNO',t:'Operator',type:'sub'},{s:'DataProduct',t:'Product',type:'sub'},
+  {s:'VoiceProduct',t:'Product',type:'sub'},{s:'BundledProduct',t:'Product',type:'sub'},
+  {s:'VoiceUsage',t:'UsageRecord',type:'sub'},{s:'DataUsage',t:'UsageRecord',type:'sub'},
+  {s:'BaseFeeWholesaleItem',t:'SettlementItem',type:'sub'},{s:'AgencyFeeItem',t:'SettlementItem',type:'sub'},
+  {s:'ExcessVoiceChargeItem',t:'SettlementItem',type:'sub'},{s:'BillingAgencyFeeItem',t:'AgencyFeeItem',type:'sub'},
+  {s:'CollectionAgencyFeeItem',t:'AgencyFeeItem',type:'sub'},{s:'RevenueShareTerm',t:'ContractTerm',type:'sub'},
+  {s:'MinimumGuaranteeTerm',t:'ContractTerm',type:'sub'},
+  {s:'CustomerRegistration',t:'RawData',type:'sub'},{s:'CustomerRegistrationHistory',t:'RawData',type:'sub'},
+  {s:'MNOProduct',t:'Product',type:'sub'},
+  {s:'CustomerRegistration',t:'Product',type:'obj',lbl:'subscribedMVNOProduct'},
+  {s:'CustomerRegistration',t:'MNOProduct',type:'obj',lbl:'mappedMNOProduct'},
+  {s:'CustomerRegistration',t:'SettlementRate',type:'obj',lbl:'appliedRate'},
+  {s:'BaseFeeWholesaleItem',t:'CustomerRegistration',type:'obj',lbl:'calculatedFrom'},
+  {s:'BaseFeeWholesaleItem',t:'CustomerRegistrationHistory',type:'obj',lbl:'adjustedBy'},
+  {s:'BaseFeeWholesaleItem',t:'MNOProduct',type:'obj',lbl:'referencesMNOProduct'},
+  {s:'MNOProduct',t:'MNO',type:'obj',lbl:'providedByMNO'},
+  {s:'Subscriber',t:'MVNO',type:'obj',lbl:'belongsToMVNO'},
+  {s:'Subscriber',t:'SIM',type:'obj',lbl:'hasSIM'},
+  {s:'Subscriber',t:'Product',type:'obj',lbl:'subscribesTo'},
+  {s:'MVNO',t:'MNO',type:'obj',lbl:'hostedBy'},
+  {s:'MVNO',t:'Contract',type:'obj',lbl:'hasContract'},
+  {s:'Product',t:'MVNO',type:'obj',lbl:'offeredBy'},
+  {s:'SettlementRate',t:'Product',type:'obj',lbl:'appliesTo'},
+  {s:'SettlementRate',t:'MVNO',type:'obj',lbl:'appliesToMVNO'},
+  {s:'UsageRecord',t:'Subscriber',type:'obj',lbl:'usageOf'},
+  {s:'UsageRecord',t:'BillingPeriod',type:'obj',lbl:'usageInPeriod'},
+  {s:'SettlementItem',t:'Subscriber',type:'obj',lbl:'itemForSubscriber'},
+  {s:'SettlementItem',t:'BillingPeriod',type:'obj',lbl:'itemInPeriod'},
+  {s:'SettlementItem',t:'SettlementRate',type:'obj',lbl:'itemAppliesRate'},
+  {s:'SettlementItem',t:'Invoice',type:'obj',lbl:'belongsToInvoice'},
+  {s:'Invoice',t:'MVNO',type:'obj',lbl:'invoiceForMVNO'},
+  {s:'Invoice',t:'BillingPeriod',type:'obj',lbl:'invoiceForPeriod'},
+  {s:'Contract',t:'ContractTerm',type:'obj',lbl:'hasTerm'},
+];
+
+const SETT_CODE_TABLE=[
+  {id:'M0001',mid:'가입자당도매대가',label:'가입자당단가',subs:[
+    {name:'가입자당단가(정액선불)',scode:'S0001',rawsrc:'선불가입이력'},
+    {name:'가입자당단가(일반)',    scode:'S0002',rawsrc:'고객가입정보'},
+    {name:'가입자당단가(eSIM)',   scode:'S0003',rawsrc:'고객가입정보'},
+  ]},
+  {id:'M0002',mid:'가입자당도매대가',label:'기간단가',subs:[
+    {name:'기간이전단가',scode:'S0051',rawsrc:'고객가입정보'},
+    {name:'기간이후단가',scode:'S0052',rawsrc:'고객가입정보'},
+  ]},
+  {id:'M0003',mid:'초과종량',label:'초과종량',subs:[
+    {name:'음성',    scode:'S0004',rawsrc:'과금내역'},
+    {name:'영상',    scode:'S0005',rawsrc:'과금내역'},
+    {name:'SMS·MMS',scode:'S0006',rawsrc:'과금내역'},
+    {name:'데이터',  scode:'S0007',rawsrc:'과금내역'},
+  ]},
+  {id:'M0005',mid:'총량',label:'총량',subs:[
+    {name:'음성',           scode:'S0011',rawsrc:'과금내역'},
+    {name:'영상',           scode:'S0012',rawsrc:'과금내역'},
+    {name:'SMS',            scode:'S0013',rawsrc:'과금내역'},
+    {name:'MMS(텍스트)',    scode:'S0014',rawsrc:'과금내역'},
+    {name:'MMS(사진·영상)',scode:'S0015',rawsrc:'과금내역'},
+    {name:'데이터',         scode:'S0016',rawsrc:'과금내역'},
+  ]},
+  {id:'M0006',mid:'선불100매출',label:'선불100매출',subs:[
+    {name:'선불 음성 국제이용료',scode:'S0018',rawsrc:'선불사용내역'},
+    {name:'선불 SMS 국제이용료', scode:'S0019',rawsrc:'선불사용내역'},
+    {name:'선불 정보이용료',     scode:'S0020',rawsrc:'선불사용내역'},
+    {name:'선불 부가서비스',     scode:'S0021',rawsrc:'선불사용내역'},
+  ]},
+  {id:'M0008',mid:'위약금',label:'위약금',subs:[{name:'위약금',scode:'S0023',rawsrc:'청구/수납'}]},
+  {id:'M0009',mid:'무제한로밍',label:'무제한로밍',subs:[{name:'무제한로밍',scode:'S0024',rawsrc:'고객가입정보'}]},
+  {id:'M0010',mid:'착신수수료',label:'착신수수료',subs:[{name:'착신수수료',scode:'S0025',rawsrc:'착신CDR내역'}]},
+  {id:'M0011',mid:'부가서비스 인센티브',label:'부가서비스인센티브',subs:[
+    {name:'부가서비스 인센티브',    scode:'S0026',rawsrc:'선불사용내역'},
+    {name:'후불부가서비스 인센티브',scode:'S0027',rawsrc:'청구/수납'},
+  ]},
+  {id:'M0012',mid:'GR할인',label:'GR할인',subs:[{name:'GR할인',scode:'S0028',rawsrc:'화면입력'}]},
+  {id:'M0015',mid:'대행수수료',label:'대행수수료',subs:[
+    {name:'과금대행',scode:'S0031',rawsrc:'고객가입정보'},
+    {name:'청구대행',scode:'S0032',rawsrc:'고객가입정보'},
+    {name:'영업전산',scode:'S0033',rawsrc:'고객가입정보'},
+    {name:'수납대행',scode:'S0034',rawsrc:'고객가입정보'},
+  ]},
+  {id:'M0016',mid:'선불 충전',label:'선불충전',subs:[{name:'일반선불 충전',scode:'S0041',rawsrc:'선불충전내역'}]},
+  {id:'M0017',mid:'GL수납금액',label:'GL수납금액',subs:[{name:'GL수납금액',scode:'S0042',rawsrc:'GL(회계자료)'}]},
+  {id:'M0018',mid:'총량_미니멈',label:'총량미니멈',subs:[{name:'미니멈_총량',scode:'S0017',rawsrc:'과금내역'}]},
+  {id:'M0020',mid:'가입자총량',label:'가입자총량',subs:[
+    {name:'음성', scode:'S0043',rawsrc:'과금내역'},
+    {name:'SMS',  scode:'S0044',rawsrc:'과금내역'},
+    {name:'데이터',scode:'S0045',rawsrc:'과금내역'},
+  ]},
+  {id:'M0021',mid:'청구기준(RS)',label:'청구기준RS',subs:[{name:'청구기준(RS)',scode:'S0053',rawsrc:'청구'}]},
+  {id:'M0022',mid:'선구매',label:'선구매',subs:[{name:'데이터선구매',scode:'S0054',rawsrc:'데이터선구매내역'}]},
+  {id:'M0023',mid:'수납기준(RS)',label:'수납기준RS',subs:[{name:'수납기준(RS)',scode:'S0055',rawsrc:'수납'}]},
+  {id:'M0024',mid:'청구기준(RS) 차감',label:'청구RS차감',subs:[{name:'청구기준(RS) 차감',scode:'S0056',rawsrc:'청구/수납'}]},
+];
+SETT_CODE_TABLE.forEach(item=>{
+  OWL_NODES.push({id:item.id, domain:'settlement', label:item.label, sub:item.id});
+  OWL_LINKS.push({s:item.id, t:'SettlementItem', type:'sub'});
+  CLASS_META[item.id]={
+    props: item.subs.map(s=>`${s.scode}  ${s.name}`),
+    desc: `${item.mid} (중코드 ${item.id}) — 소분류 ${item.subs.length}개`,
+  };
+});
+
+// ═══════════════════════════════════════════════
+// v4 신규: 요금제별 정산코드 매핑
+// ═══════════════════════════════════════════════
+const PLANS_BY_MCODE={
+  M0001:[
+    {id:'P001',name:'데이터무한100G',   baseFee:10000,wholesaleRate:0.50,desc:'기본료 × 요율 × 일할'},
+    {id:'P002',name:'데이터50G음성200분',baseFee:7000, wholesaleRate:0.45,desc:'기본료 × 요율 × 일할'},
+    {id:'P003',name:'음성전용300분',    baseFee:5000, wholesaleRate:0.50,desc:'기본료 × 요율 × 일할'},
+  ],
+  M0002:[
+    {id:'P001',name:'데이터무한100G',   prePeriod:1000,postPeriod:800,desc:'가입기간 이전/이후 단가'},
+    {id:'P002',name:'데이터50G음성200분',prePeriod:900, postPeriod:700,desc:'가입기간 이전/이후 단가'},
+    {id:'P003',name:'음성전용300분',    prePeriod:800, postPeriod:600,desc:'가입기간 이전/이후 단가'},
+  ],
+  M0003:[
+    {id:'P001',name:'데이터무한100G',   voiceRate:1.8,videoRate:3.0,smsRate:10,dataRate:0.5,desc:'초과분 × 종량단가'},
+    {id:'P002',name:'데이터50G음성200분',voiceRate:1.5,videoRate:3.0,smsRate:10,dataRate:0.5,desc:'초과분 × 종량단가'},
+    {id:'P003',name:'음성전용300분',    voiceRate:2.0,videoRate:0,  smsRate:15,dataRate:0,  desc:'초과분 × 종량단가'},
+  ],
+  M0005:[
+    {id:'P001',name:'데이터무한100G',   voiceTotal:1.5,dataTotal:500,desc:'사용량 × 총량단가'},
+    {id:'P002',name:'데이터50G음성200분',voiceTotal:1.3,dataTotal:450,desc:'사용량 × 총량단가'},
+    {id:'P003',name:'음성전용300분',    voiceTotal:1.8,dataTotal:0,  desc:'사용량 × 총량단가'},
+  ],
+  M0015:[
+    {id:'P001',name:'데이터무한100G',   billing:100,collection:200,desc:'건당 고정 수수료'},
+    {id:'P002',name:'데이터50G음성200분',billing:100,collection:200,desc:'건당 고정 수수료'},
+    {id:'P003',name:'음성전용300분',    billing:100,collection:200,desc:'건당 고정 수수료'},
+  ],
+  M0006:[
+    {id:'P001',name:'데이터무한100G',   intlVoice:50,intlSMS:20,desc:'국제이용 × 이용료율'},
+    {id:'P002',name:'데이터50G음성200분',intlVoice:50,intlSMS:20,desc:'국제이용 × 이용료율'},
+    {id:'P003',name:'음성전용300분',    intlVoice:60,intlSMS:25,desc:'국제이용 × 이용료율'},
+  ],
+};
+
+// ═══════════════════════════════════════════════
+// v4 신규: 정산 인스턴스 샘플 데이터 (15명)
+// ═══════════════════════════════════════════════
+const SETT_INSTANCES=[
+  // M0001 — 가입자당도매대가
+  {id:'I001',name:'나가입',  mcode:'M0001',scode:'S0002',mvno:'알뜰폰 A',  planName:'LTE 150G',   baseFee:10000,rate:0.80,activeDays:30,totalDays:30,settAmt:8000,  calc:'10,000 × 80% × (30/30)'},
+  {id:'I002',name:'김알뜰',  mcode:'M0001',scode:'S0002',mvno:'스마트텔 B',planName:'데이터무한',  baseFee:10000,rate:0.75,activeDays:28,totalDays:30,settAmt:7000,  calc:'10,000 × 75% × (28/30)'},
+  {id:'I003',name:'이선불',  mcode:'M0001',scode:'S0001',mvno:'알뜰폰 A',  planName:'선불 3G',    baseFee:5000, rate:0.70,activeDays:30,totalDays:30,settAmt:3500,  calc:'5,000 × 70% × (30/30)'},
+  {id:'I004',name:'박이심',  mcode:'M0001',scode:'S0003',mvno:'모바일넷 C',planName:'eSIM 5G',    baseFee:15000,rate:0.78,activeDays:15,totalDays:30,settAmt:5850,  calc:'15,000 × 78% × (15/30)'},
+  {id:'I005',name:'최데이터',mcode:'M0001',scode:'S0002',mvno:'링크통신 D',planName:'데이터 50G', baseFee:7000, rate:0.80,activeDays:30,totalDays:30,settAmt:5600,  calc:'7,000 × 80% × (30/30)'},
+  // M0003 — 초과종량
+  {id:'I006',name:'홍음성',  mcode:'M0003',scode:'S0004',mvno:'알뜰폰 A',  planName:'음성전용',   excess:20,    rate:1.8, settAmt:36,    calc:'초과 20분 × 1.8원/분'},
+  {id:'I007',name:'신데이터',mcode:'M0003',scode:'S0007',mvno:'스마트텔 B',planName:'데이터50G',  excess:10240, rate:0.5, settAmt:5120,  calc:'초과 10GB × 1024 × 0.5원/MB'},
+  // M0005 — 총량
+  {id:'I008',name:'임총량',  mcode:'M0005',scode:'S0011',mvno:'모바일넷 C',planName:'무한요금제', used:200,     rate:1.5, settAmt:300,   calc:'200분 × 1.5원/분'},
+  {id:'I009',name:'강가입자',mcode:'M0005',scode:'S0016',mvno:'알뜰폰 A',  planName:'데이터무한', used:80,      rate:500, settAmt:40000, calc:'80GB × 500원/GB'},
+  // M0015 — 대행수수료
+  {id:'I010',name:'조청구',  mcode:'M0015',scode:'S0032',mvno:'링크통신 D',planName:'데이터50G',  fee:100,      settAmt:100,   calc:'청구대행 건당 100원'},
+  {id:'I011',name:'윤수납',  mcode:'M0015',scode:'S0034',mvno:'디지털폰 E',planName:'음성전용',   fee:200,      settAmt:200,   calc:'수납대행 건당 200원'},
+  // M0006 — 선불
+  {id:'I012',name:'장선불',  mcode:'M0006',scode:'S0018',mvno:'알뜰폰 A',  planName:'선불요금제', used:10,      rate:50,  settAmt:500,   calc:'국제음성 10분 × 50원/분'},
+  {id:'I013',name:'오SMS',   mcode:'M0006',scode:'S0019',mvno:'스마트텔 B',planName:'선불SMS',    used:20,      rate:20,  settAmt:400,   calc:'국제SMS 20건 × 20원/건'},
+  // M0012 — GR할인
+  {id:'I014',name:'한GR',    mcode:'M0012',scode:'S0028',mvno:'모바일넷 C',planName:'전체상품',   rsBase:1000000,rate:0.05,settAmt:-50000,calc:'RS기준 1,000,000 × -5%'},
+  // M0009 — 무제한로밍
+  {id:'I015',name:'류로밍',  mcode:'M0009',scode:'S0024',mvno:'링크통신 D',planName:'로밍상품',   fee:30000,    settAmt:30000, calc:'로밍 가입자당 30,000원'},
+];
+
+// MVNO별 M코드 정산 시뮬레이션 (seededRng 선언 전이므로 함수 지연 선언)
+function getMVNOSettByMcode(mcode){
+  const sc=SETT_CODE_TABLE.find(x=>x.id===mcode);
+  if(!sc) return [];
+  const mvnos=['알뜰폰 A','스마트텔 B','모바일넷 C','링크통신 D','디지털폰 E'];
+  return mvnos.map((name,mi)=>{
+    const subs={};
+    let seed=mi*9999+mcode.charCodeAt(1)*37;
+    sc.subs.forEach((s,si)=>{
+      seed=(Math.imul(1664525,seed)+1013904223)>>>0;
+      const base=(seed/4294967296)*8000000+300000;
+      subs[s.scode]=Math.round(base/1000)*1000;
+    });
+    const total=Object.values(subs).reduce((a,b)=>a+b,0);
+    return{mvno:name,subs,total};
+  });
+}
+
+const CLASS_SUBS={
+  Subscriber:['S001','S002','S003'],Product:['S001','S002','S003'],
+  BundledProduct:['S001','S002'],VoiceProduct:['S003'],
+  SettlementRate:['S001','S002','S003'],SettlementItem:['S001','S002','S003'],
+  BaseFeeWholesaleItem:['S001','S002','S003'],BillingAgencyFeeItem:['S001','S002','S003'],
+  CollectionAgencyFeeItem:['S001','S002','S003'],ExcessVoiceChargeItem:['S002','S003'],
+  BillingPeriod:['S001','S002','S003'],Invoice:['S001','S002','S003'],
+  MVNO:['S001','S002','S003'],UsageRecord:['S001','S002','S003'],
+  VoiceUsage:['S001','S002','S003'],DataUsage:['S001','S002'],
+};
+function getSubPath(subId){
+  const sub=SUBSCRIBERS.find(s=>s.id===subId);
+  const prod=PRODUCTS.find(p=>p.id===sub.productId);
+  const res=calcAllItems(sub,prod,RATES[sub.productId],BILLING);
+  const ns=new Set(['Subscriber','Product','SettlementRate','BillingPeriod','SettlementItem','Invoice','MVNO','UsageRecord']);
+  ns.add(prod.type==='bundled'?'BundledProduct':'VoiceProduct');
+  ns.add('BaseFeeWholesaleItem');ns.add('AgencyFeeItem');
+  ns.add('BillingAgencyFeeItem');ns.add('CollectionAgencyFeeItem');
+  if(res.excV>0||res.excVid>0||res.excSMS>0||res.excData>0) ns.add('ExcessVoiceChargeItem');
+  if(sub.usedVoice>0) ns.add('VoiceUsage');
+  if(sub.usedData>0) ns.add('DataUsage');
+  return ns;
+}
+
+const SAMPLE_INST={
+  label:'나가입',
+  path: new Set(['CustomerRegistration','Product','MNOProduct','SettlementRate',
+                 'BaseFeeWholesaleItem','M0001','SettlementItem','Invoice']),
+  annot:{
+    CustomerRegistration: {lines:['나가입','활성 30일'],    color:'#f97316'},
+    Product:              {lines:['LTE 150G','10,000원'],   color:'#10b981'},
+    MNOProduct:           {lines:['데이터전용 100G'],        color:'#10b981'},
+    SettlementRate:       {lines:['도매대가율 80%'],         color:'#f59e0b'},
+    M0001:                {lines:['가입자당도매대가','S0002 일반'], color:'#ef4444'},
+    BaseFeeWholesaleItem: {lines:['8,000원','10,000×80%'],  color:'#ef4444'},
+    Invoice:              {lines:['청구 8,000원'],           color:'#ec4899'},
+  },
+  steps:[
+    {nodeId:'CustomerRegistration', domain:'source',    label:'CustomerRegistration', badge:'고객가입 원본',
+     vals:[['고객명','나가입'],['가입일','2026-01-01'],['활성일수','30일'],['상품','LTE 150G']]},
+    {nodeId:'Product',              domain:'product',   label:'Product (MVNO 상품)', badge:'MVNO 상품',
+     vals:[['상품명','LTE 150G'],['요금제 금액','10,000원'],['포함 데이터','150GB']]},
+    {nodeId:'MNOProduct',           domain:'product',   label:'MNOProduct (MNO 망도매)', badge:'MNO 상품',
+     vals:[['망도매 상품명','데이터 전용 100G'],['MNO 매핑','1:1 매핑']]},
+    {nodeId:'SettlementRate',       domain:'rate',      label:'SettlementRate (정산요율)', badge:'정산요율',
+     vals:[['도매대가율','80%'],['유효기간','2026-01'],['중분류','가입자당도매대가']]},
+    {nodeId:'M0001',                domain:'settlement',label:'M0001 (가입자당도매대가)', badge:'정산코드',
+     vals:[['중분류','가입자당도매대가'],['소분류','가입자당단가(일반)'],['소코드','S0002'],['RawData','고객가입정보']]},
+    {nodeId:'BaseFeeWholesaleItem', domain:'settlement',label:'BaseFeeWholesaleItem', badge:'계산 항목',
+     vals:[['계산식','요금제금액 × 요율 × (활성일/월일수)'],['10,000 × 80% × (30/30)','= 8,000원'],['항목금액','8,000원']]},
+    {nodeId:'Invoice',              domain:'invoice',   label:'Invoice (정산서)', badge:'정산서',
+     vals:[['총 정산액','8,000원'],['정산월','2026-07'],['상태','정산완료']]},
+  ],
+};
+
+const State={selClass:null,selSub:null,showSub:true,showObj:true,pathAnim:false};
+let currentView='ontology';
+let selMVNO=null;
+let mvnoStyle='bubble';
+let _selHighlight=null;
+let _selMCode=null;      // v4: 현재 M코드 슬라이드 상태
+let _selMCodeInst=null;  // v4: 선택된 인스턴스 id
+let _mcInstSearch='';    // v4: 인스턴스 탭 검색어
+
+let isDark=true;
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('light',!isDark);
+  const btn=document.getElementById('btn-theme');
+  btn.textContent=isDark?'🌙':'☀️';
+  btn.title=isDark?'화이트 모드로 전환':'다크 모드로 전환';
+  const st=getComputedStyle(document.documentElement);
+  const lsub=st.getPropertyValue('--g-lsub').trim();
+  const lobj=st.getPropertyValue('--g-lobj').trim();
+  linkSel.attr('stroke',d=>d.type==='sub'?lsub:lobj);
+  svg.select('#mo path').attr('fill',isDark?'#3b82f680':'#3b82f6aa');
+  svg.select('#ms path').attr('fill',isDark?'#2d374880':'#94a3b8aa');
+  if(State.selClass){
+    const d=OWL_NODES.find(n=>n.id===State.selClass);
+    if(d){renderSlideInfo(d);renderSlideMVNO();renderSlideProd();renderSlideInstances(d);renderSlideCalc();renderSlideWhatif();}
+  }
+}
+let wiOv={};
+const Srch={
+  inst:{text:'',esim:false,prepaid:false,excess:false},
+  mvno:{prod:'ALL',cat:'ALL'},
+};
+
+// ═══════════════════════════════════════════════
+// 그래프 초기화
+// ═══════════════════════════════════════════════
+const gArea=document.getElementById('graph-area');
+const svg=d3.select('#graph-svg');
+const G=svg.append('g');
+const defs=svg.append('defs');
+['mo','ms','mh'].forEach((id,i)=>{
+  defs.append('marker').attr('id',id).attr('viewBox','0 -5 10 10')
+    .attr('refX',20).attr('refY',0).attr('markerWidth',5).attr('markerHeight',5).attr('orient','auto')
+    .append('path').attr('d','M0,-5L10,0L0,5')
+    .attr('fill',i===0?'#3b82f680':i===1?'#2d374880':'#fbbf24');
+});
+[['exp-arr-s','#ef4444'],['exp-arr-r','#f97316']].forEach(([id,fill])=>{
+  defs.append('marker').attr('id',id).attr('viewBox','0 -4 8 8')
+    .attr('refX',8).attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
+    .append('path').attr('d','M0,-4L8,0L0,4').attr('fill',fill);
+});
+const zoom=d3.zoom().scaleExtent([.08,3]).on('zoom',e=>G.attr('transform',e.transform));
+svg.call(zoom);
+const nodes=OWL_NODES.map(d=>({...d}));
+const links=OWL_LINKS.map(d=>({...d,source:d.s,target:d.t}));
+
+(function computeLevels(){
+  const parents={};
+  OWL_LINKS.forEach(l=>{ if(l.type==='sub'){ (parents[l.s]=parents[l.s]||[]).push(l.t); } });
+  const memo={};
+  function lvl(id){
+    if(memo[id]!==undefined) return memo[id];
+    const ps=parents[id]||[];
+    memo[id]=ps.length ? Math.max(...ps.map(lvl))+1 : 0;
+    return memo[id];
+  }
+  nodes.forEach(n=>{ n.level=lvl(n.id); });
+})();
+const LVL_H=200;
+
+const sim=d3.forceSimulation(nodes)
+  .force('link',d3.forceLink(links).id(d=>d.id).distance(d=>d.type==='sub'?100:185).strength(.5))
+  .force('charge',d3.forceManyBody().strength(-620))
+  .force('center',d3.forceCenter(0,0))
+  .force('col',d3.forceCollide().radius(72))
+  .force('y',d3.forceY(d=>(d.level||0)*LVL_H).strength(0.55))
+  .force('x',d3.forceX(0).strength(0.02));
+
+function nw(d){return Math.max(d.label.length*7.5+20,100);}
+const nh=42;
+
+const linkSel=G.append('g').selectAll('path').data(links).enter().append('path')
+  .attr('class','lp')
+  .attr('stroke',d=>d.type==='sub'?'#2d3748':'#1e3a5f')
+  .attr('marker-end',d=>d.type==='sub'?'url(#ms)':'url(#mo)');
+const linkLSel=G.append('g').selectAll('text').data(links).enter().append('text')
+  .attr('class','ll').text(d=>d.type==='obj'?d.lbl:'');
+const nodeSel=G.append('g').selectAll('.nd').data(nodes).enter().append('g')
+  .attr('class','nd')
+  .call(d3.drag()
+    .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+    .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
+    .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}))
+  .on('click',(e,d)=>{e.stopPropagation();onNodeClick(d);})
+  .on('mouseenter',(e,d)=>showTip(e,d)).on('mouseleave',()=>hideTip());
+
+nodeSel.append('rect')
+  .attr('class',d=>'nr'+(d.abstract?' abs':''))
+  .attr('width',d=>nw(d)).attr('height',nh)
+  .attr('x',d=>-nw(d)/2).attr('y',-nh/2)
+  .attr('rx',9).attr('ry',9)
+  .attr('fill',d=>DOMAINS[d.domain].color+'1a')
+  .attr('stroke',d=>DOMAINS[d.domain].color);
+nodeSel.append('text').attr('class','nl').attr('y',-7).text(d=>d.label);
+nodeSel.append('text').attr('class','ns').attr('y',8).text(d=>d.sub);
+
+const expandG=G.append('g').attr('id','expand-g');
+let _expandNodesData=[], _expandLinksData=[];
+const instAnnotG=G.append('g').attr('id','inst-annot-g');
+let _sampleActive=false;
+
+function clearExpand(){
+  if(_expandNodesData.length){
+    sim.nodes(nodes);
+    sim.force('link').links(links);
+    _expandNodesData=[];
+    _expandLinksData=[];
+    sim.alpha(0.08).restart();
+  }
+  expandG.selectAll('*').remove();
+}
+
+function showSampleInstance(){
+  if(_sampleActive){ clearSampleInstance(); return; }
+  _sampleActive=true;
+  document.getElementById('btn-sample').classList.add('active');
+  State.selClass=null; State.selSub=null;
+  clearExpand();
+  updateGraph();
+  drawInstAnnotations();
+  openSampleSlide();
+  const m01=nodes.find(n=>n.id==='M0001');
+  if(m01) setTimeout(()=>expandSettlementNode(m01),200);
+}
+
+function clearSampleInstance(){
+  _sampleActive=false;
+  const btn=document.getElementById('btn-sample');
+  if(btn) btn.classList.remove('active');
+  instAnnotG.selectAll('*').remove();
+  clearExpand();
+  updateGraph();
+}
+
+function drawInstAnnotations(){
+  instAnnotG.selectAll('*').remove();
+  Object.entries(SAMPLE_INST.annot).forEach(([nodeId,cfg])=>{
+    const nd=nodes.find(n=>n.id===nodeId);
+    if(!nd) return;
+    const g=instAnnotG.append('g').datum(nd).attr('class','inst-chip')
+      .attr('transform',`translate(${nd.x},${nd.y})`).attr('pointer-events','none');
+    const lineH=14, pad=6, lineCount=cfg.lines.length;
+    const W=Math.max(...cfg.lines.map(l=>l.length*6.2))+pad*2;
+    const H=lineCount*lineH+pad*2;
+    const ox=60, oy=-(H/2);
+    g.append('line').attr('x1',20).attr('y1',0).attr('x2',ox).attr('y2',H/2+oy)
+      .attr('stroke',cfg.color).attr('stroke-width',1).attr('opacity',.5);
+    g.append('rect').attr('x',ox).attr('y',oy)
+      .attr('width',W).attr('height',H).attr('rx',5)
+      .attr('fill',cfg.color+'22').attr('stroke',cfg.color).attr('stroke-width',1.2).attr('opacity',.92);
+    cfg.lines.forEach((line,i)=>{
+      g.append('text').attr('x',ox+pad).attr('y',oy+pad+lineH*(i+.8))
+        .attr('fill',i===0?cfg.color:'#e5e7eb')
+        .attr('font-size',i===0?'9.5px':'9px').attr('font-weight',i===0?'800':'500').text(line);
+    });
+  });
+}
+
+function openSampleSlide(){
+  const accentColor='#f59e0b';
+  document.getElementById('slide-color-bar').style.background=accentColor;
+  document.getElementById('slide-title').textContent='나가입 — 정산 추적';
+  document.getElementById('slide-title').style.color=accentColor;
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  let det=document.getElementById('sl-sample-inst');
+  if(!det){
+    det=document.createElement('div');
+    det.id='sl-sample-inst';det.className='sl-content';
+    document.getElementById('slide-body').appendChild(det);
+  }
+  const stepsHtml=SAMPLE_INST.steps.map((step,i)=>{
+    const col=DOMAINS[step.domain]?.color||'#6b7280';
+    const valsHtml=step.vals.map(([k,v])=>`<div class="inst-val-row"><span class="inst-val-key">${k}: </span><b>${v}</b></div>`).join('');
+    const arrow=i<SAMPLE_INST.steps.length-1?`<div style="text-align:center;color:var(--txt4);font-size:16px;margin:-2px 0">↓</div>`:'';
+    return `<div class="inst-step">
+      <div class="inst-node-badge" style="background:${col}22;border:1.5px solid ${col};color:${col}">${step.badge}</div>
+      <div class="inst-vals"><div style="font-size:10px;font-weight:800;color:${col};margin-bottom:4px">${step.label}</div>${valsHtml}</div>
+    </div>${arrow}`;
+  }).join('');
+  det.innerHTML=`
+  <div style="padding:4px 0 10px;border-bottom:1px solid var(--bdr2);margin-bottom:10px">
+    <div style="font-size:10px;color:${accentColor};font-weight:700;letter-spacing:.04em;margin-bottom:2px">📋 인스턴스 정산 추적</div>
+    <div style="font-size:13px;font-weight:900;color:var(--txt)">나가입 고객 · 2026년 7월</div>
+    <div style="font-size:10px;color:var(--txt4);margin-top:3px">중분류: 가입자당도매대가 · 소분류: 가입자당단가(일반)</div>
+  </div>
+  ${stepsHtml}
+  <div class="inst-calc-box">
+    <div class="inst-calc-title">🧮 최종 정산 계산</div>
+    <div class="inst-calc-eq">8,000원</div>
+    <div class="inst-calc-detail">기본료 10,000원 × 요율 80% × (활성 30일 / 월 30일)</div>
+    <div style="margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <span style="padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;background:#10b98122;border:1px solid #10b981;color:#10b981">MVNO 상품: LTE 150G</span>
+      <span style="padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;background:#f59e0b22;border:1px solid #f59e0b;color:#f59e0b">요율: 80%</span>
+      <span style="padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;background:#ef444422;border:1px solid #ef4444;color:#ef4444">S0002 일반단가</span>
+    </div>
+  </div>`;
+  det.style.display='';
+  document.getElementById('slide').classList.add('open');
+}
+
+function expandSettlementNode(nd){
+  clearExpand();
+  const sc=SETT_CODE_TABLE.find(x=>x.id===nd.id);
+  if(!sc) return;
+  const settColor='#ef4444', srcColor='#f97316';
+  const sameMid=SETT_CODE_TABLE.filter(x=>x.mid===sc.mid);
+  const allSubs=sameMid.flatMap(x=>x.subs.map(s=>({...s,midId:x.id})));
+  const rawSrcSet=[...new Set(allSubs.map(s=>s.rawsrc).filter(Boolean))];
+  const ndLvl=(nd.level||0), spread=55;
+
+  const newNodes=[
+    ...allSubs.map((sub,i)=>({
+      id:`_exp_s_${sub.scode}`,
+      _expandType:'sub', _expandData:sub, _sc:sc,
+      domain:'settlement', level:ndLvl+1,
+      x: nd.x+170+(Math.random()-.5)*20,
+      y: nd.y+(i-allSubs.length/2)*spread,
+    })),
+    ...rawSrcSet.map((src,i)=>({
+      id:`_exp_r_${src.replace(/\W/g,'_')}`,
+      _expandType:'raw', _expandData:{src}, _sc:sc,
+      domain:'source', level:ndLvl+1,
+      x: nd.x-180+(Math.random()-.5)*20,
+      y: nd.y+(i-rawSrcSet.length/2)*spread,
+    })),
+  ];
+  const newLinks=[
+    ...allSubs.map(sub=>({source:nd.id, target:`_exp_s_${sub.scode}`, type:'sub', _expand:true})),
+    ...allSubs.filter(s=>s.rawsrc).map(sub=>({
+      source:`_exp_r_${sub.rawsrc.replace(/\W/g,'_')}`,
+      target:`_exp_s_${sub.scode}`, type:'obj', _expand:true,
+    })),
+  ];
+  _expandNodesData=newNodes; _expandLinksData=newLinks;
+  sim.nodes([...nodes,...newNodes]);
+  sim.force('link').links([...links,...newLinks]);
+  sim.alpha(0.4).restart();
+
+  expandG.selectAll('.exp-lk').data(newLinks).enter().append('line')
+    .attr('class','exp-lk')
+    .attr('stroke',d=>d.type==='sub'?settColor:srcColor)
+    .attr('stroke-width',d=>d.type==='sub'?2:1.8)
+    .attr('stroke-dasharray',d=>d.type==='sub'?'6 3':'4 3')
+    .attr('opacity',0.85)
+    .attr('marker-end',d=>`url(#${d.type==='sub'?'exp-arr-s':'exp-arr-r'})`)
+    .attr('pointer-events','none');
+
+  const subW=136, subH=40, rawW=116, rawH=36;
+  newNodes.forEach(node=>{
+    const isRaw=node._expandType==='raw';
+    const sub=node._expandData;
+    const W=isRaw?rawW:subW, H=isRaw?rawH:subH;
+    const col=isRaw?srcColor:settColor;
+    const ng=expandG.append('g').datum(node).attr('class','exp-nd')
+      .attr('transform',`translate(${node.x},${node.y})`).style('cursor','pointer')
+      .call(d3.drag()
+        .on('start',(e,d)=>{if(!e.active)sim.alphaTarget(.3).restart();d.fx=d.x;d.fy=d.y;})
+        .on('drag',(e,d)=>{d.fx=e.x;d.fy=e.y;})
+        .on('end',(e,d)=>{if(!e.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}))
+      .on('click',(e)=>{
+        e.stopPropagation();
+        if(isRaw){
+          const relSubs=allSubs.filter(s=>s.rawsrc===sub.src);
+          showExpandSlide('raw',sub,sc,relSubs);
+        } else {
+          showExpandSlide('sub',sub,sc);
+        }
+      });
+    ng.append('rect').attr('x',-W/2).attr('y',-H/2)
+      .attr('width',W).attr('height',H).attr('rx',isRaw?8:7)
+      .attr('fill',col+'22').attr('stroke',col).attr('stroke-width',2);
+    if(!isRaw){
+      ng.append('rect').attr('x',-W/2+4).attr('y',-H/2+4)
+        .attr('width',34).attr('height',13).attr('rx',3).attr('fill',col+'55');
+      ng.append('text').attr('x',-W/2+21).attr('y',-H/2+14)
+        .attr('text-anchor','middle').attr('fill','#fff')
+        .attr('font-size','8px').attr('font-weight','800').text(sub.midId);
+      ng.append('text').attr('text-anchor','middle').attr('y',-5)
+        .attr('fill','#fca5a5').attr('font-size','10px').attr('font-weight','800').text(sub.scode);
+      ng.append('text').attr('text-anchor','middle').attr('y',11)
+        .attr('fill','#f1f5f9').attr('font-size','9px')
+        .text(sub.name.length>16?sub.name.slice(0,15)+'…':sub.name);
+    } else {
+      ng.append('text').attr('text-anchor','middle').attr('y',-5)
+        .attr('fill','#fed7aa').attr('font-size','8px').attr('font-weight','700').text('▶ RawData');
+      ng.append('text').attr('text-anchor','middle').attr('y',10)
+        .attr('fill','#fdba74').attr('font-size','10.5px').attr('font-weight','900')
+        .text(sub.src.length>13?sub.src.slice(0,12)+'…':sub.src);
+    }
+    ng.on('mouseenter',()=>ng.select('rect').attr('fill',col+'44'))
+      .on('mouseleave',()=>ng.select('rect').attr('fill',col+'22'));
+  });
+}
+
+function showExpandSlide(type, node, sc, relSubs){
+  const settColor='#ef4444', srcColor='#f97316';
+  const color= type==='sub'?settColor:srcColor;
+  document.getElementById('slide-color-bar').style.background=color;
+  document.getElementById('slide-title').style.color=color;
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  let det=document.getElementById('sl-mvno-det');
+  if(!det){det=document.createElement('div');det.id='sl-mvno-det';det.className='sl-content';document.getElementById('slide-body').appendChild(det);}
+  if(type==='sub'){
+    document.getElementById('slide-title').textContent=node.scode;
+    det.innerHTML=`
+    <div style="padding:4px 0 12px;border-bottom:1px solid var(--bdr2)">
+      <div style="font-size:10px;color:${settColor};font-weight:700;margin-bottom:4px;letter-spacing:.04em">정산 소분류</div>
+      <div style="font-size:22px;font-weight:900;color:#fca5a5;font-family:monospace">${node.scode}</div>
+      <div style="font-size:14px;font-weight:800;color:var(--txt);margin-top:6px">${node.name}</div>
+      <div style="font-size:11px;color:var(--txt4);margin-top:4px">중분류: <b style="color:${settColor}">${sc.mid}</b> (${sc.id})</div>
+    </div>
+    <div style="padding-top:12px">
+      <div style="font-size:10px;color:var(--txt4);font-weight:700;margin-bottom:8px">📥 소스 RawData</div>
+      <div style="display:flex;align-items:center;gap:10px;background:var(--bg4);padding:10px 12px;border-radius:8px;border:1px solid ${srcColor}66">
+        <span style="font-size:20px">🗃️</span>
+        <div>
+          <div style="font-size:13px;font-weight:800;color:#fdba74">${node.rawsrc}</div>
+          <div style="font-size:10px;color:var(--txt4);margin-top:2px">원본 데이터 소스</div>
+        </div>
+      </div>
+    </div>`;
+  } else {
+    document.getElementById('slide-title').textContent=node.src;
+    const subsHtml=(relSubs||[]).map((s,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 4px;${i>0?'border-top:1px solid var(--bdr2)':''}">
+      <span style="font-family:monospace;font-size:10px;color:${settColor};font-weight:700">${s.scode}</span>
+      <span style="font-size:11px;color:var(--txt2)">${s.name}</span>
+    </div>`).join('');
+    det.innerHTML=`
+    <div style="padding:4px 0 12px;border-bottom:1px solid var(--bdr2)">
+      <div style="font-size:10px;color:${srcColor};font-weight:700;margin-bottom:4px;letter-spacing:.04em">소스 RawData</div>
+      <div style="font-size:24px;margin-top:2px">🗃️</div>
+      <div style="font-size:16px;font-weight:900;color:#fdba74;margin-top:4px">${node.src}</div>
+      <div style="font-size:11px;color:var(--txt4);margin-top:4px">중분류: <b style="color:${settColor}">${sc.mid}</b> (${sc.id})</div>
+    </div>
+    <div style="padding-top:12px">
+      <div style="font-size:10px;color:var(--txt4);font-weight:700;margin-bottom:6px">📋 연결된 소분류 (${(relSubs||[]).length}개)</div>
+      ${subsHtml}
+    </div>`;
+  }
+  det.style.display='';
+  document.getElementById('slide').classList.add('open');
+}
+
+function lp(d){
+  const dx=d.target.x-d.source.x,dy=d.target.y-d.source.y;
+  const dr=Math.sqrt(dx*dx+dy*dy)*1.4;
+  return `M${d.source.x},${d.source.y} A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+}
+sim.on('tick',()=>{
+  linkSel.attr('d',lp);
+  linkLSel.attr('x',d=>(d.source.x+d.target.x)/2).attr('y',d=>(d.source.y+d.target.y)/2);
+  nodeSel.attr('transform',d=>`translate(${d.x},${d.y})`);
+  if(_expandNodesData.length){
+    expandG.selectAll('.exp-nd').attr('transform',d=>`translate(${d.x},${d.y})`);
+    expandG.selectAll('.exp-lk').each(function(d){
+      const s=d.source, t=d.target;
+      if(!s||!t||!isFinite(s.x)) return;
+      d3.select(this).attr('x1',s.x).attr('y1',s.y).attr('x2',t.x).attr('y2',t.y);
+    });
+  }
+  if(_sampleActive){
+    instAnnotG.selectAll('.inst-chip').attr('transform',d=>`translate(${d.x},${d.y})`);
+  }
+});
+svg.on('click',()=>{
+  if(_sampleActive){ clearSampleInstance(); closeSlide(); return; }
+  if(!State.selClass) return;
+  State.selClass=null; State.selSub=null;
+  clearExpand(); closeSlide(); updateGraph();
+});
+let _autoFitDone=false;
+sim.on('end',()=>{ if(!_autoFitDone){ _autoFitDone=true; fitG(); } });
+setTimeout(()=>{ if(!_autoFitDone && sim.alpha()<.01){ _autoFitDone=true; fitG(); } },3000);
+
+function fitG(){
+  const b=G.node().getBBox();
+  if(!b.width || !b.height) return;
+  const W=gArea.clientWidth, H=gArea.clientHeight;
+  const slideEl=document.getElementById('slide');
+  const slideW=(currentView==='ontology' && slideEl.classList.contains('open'))
+    ? slideEl.offsetWidth : 0;
+  const effW=Math.max(W-slideW, 200);
+  const pad=0.82;
+  const s=Math.min(effW/b.width, H/b.height)*pad;
+  const tx=effW/2 - s*(b.x+b.width/2);
+  const ty=H/2   - s*(b.y+b.height/2);
+  svg.transition().duration(700).call(zoom.transform,
+    d3.zoomIdentity.translate(tx,ty).scale(s));
+}
+
+function updateGraph(){
+  const subPath=State.selSub?getSubPath(State.selSub):null;
+  let hi=null;
+  if(_sampleActive) hi=SAMPLE_INST.path;
+  else if(State.selSub) hi=subPath;
+  else if(State.selClass){
+    hi=new Set([State.selClass]);
+    OWL_LINKS.forEach(l=>{
+      if(l.s===State.selClass||l.t===State.selClass){hi.add(l.s);hi.add(l.t);}
+    });
+  }
+  nodeSel.classed('dn2',d=>!!hi&&!hi.has(d.id));
+  nodeSel.select('.nr')
+    .attr('stroke',d=>{
+      if(State.selClass&&d.id===State.selClass) return '#fbbf24';
+      return DOMAINS[d.domain].color;
+    })
+    .attr('stroke-width',d=>{
+      if(State.selClass&&d.id===State.selClass) return 3;
+      if(hi&&hi.has(d.id)) return 2;
+      return 1.5;
+    })
+    .attr('fill',d=>{
+      if(State.selClass&&d.id===State.selClass) return DOMAINS[d.domain].color+'44';
+      if(hi&&hi.has(d.id)) return DOMAINS[d.domain].color+'2a';
+      return DOMAINS[d.domain].color+'1a';
+    });
+  linkSel.classed('dl2',d=>{
+    if(!hi) return false;
+    const s=typeof d.source==='object'?d.source.id:d.source;
+    const t=typeof d.target==='object'?d.target.id:d.target;
+    return !hi.has(s)||!hi.has(t);
+  });
+  linkSel.style('display',d=>{
+    if(d.type==='sub'&&!State.showSub) return 'none';
+    if(d.type==='obj'&&!State.showObj) return 'none';
+    return null;
+  });
+  linkLSel.style('display',d=>{
+    if(d.type==='sub'&&!State.showSub) return 'none';
+    if(d.type==='obj'&&!State.showObj) return 'none';
+    return null;
+  });
+}
+
+// ═══════════════════════════════════════════════
+// 노드 클릭 — v4: M코드는 별도 슬라이드
+// ═══════════════════════════════════════════════
+function onNodeClick(d){
+  if(State.selClass===d.id){ clearExpand(); closeSlide(); return; }
+  State.selClass=d.id;
+  State.selSub=null;
+  document.getElementById('hint').style.opacity='0';
+  document.getElementById('path-btn').style.display='none';
+  State.pathAnim=false;
+  clearExpand();
+  updateGraph();
+  const isMCode=!!SETT_CODE_TABLE.find(x=>x.id===d.id);
+  if(isMCode){
+    _selMCode=d.id; _selMCodeInst=null; _mcInstSearch='';
+    openMCodeSlide(d);
+    expandSettlementNode(d);
+  } else {
+    _selMCode=null;
+    openSlide(d);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// v4 신규: M코드 슬라이드 (MVNO탭/요금제탭/인스턴스탭)
+// ═══════════════════════════════════════════════
+function openMCodeSlide(nd){
+  const sc=SETT_CODE_TABLE.find(x=>x.id===nd.id);
+  if(!sc) return;
+  const settColor='#ef4444';
+  document.getElementById('slide-color-bar').style.background=settColor;
+  document.getElementById('slide-title').textContent=`${nd.id} — ${sc.mid}`;
+  document.getElementById('slide-title').style.color=settColor;
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='flex';
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  document.getElementById('slide').classList.add('open');
+  // 탭 active 초기화
+  document.querySelectorAll('#slide-tabs-mc .sl-tab').forEach((t,i)=>t.classList.toggle('active',i===0));
+  switchMCodeTab('mc-mvno');
+}
+
+function switchMCodeTab(tab){
+  document.querySelectorAll('#slide-tabs-mc .sl-tab').forEach(t=>t.classList.toggle('active',t.dataset.mctab===tab));
+  const map={'mc-mvno':'sl-mc-mvno','mc-plan':'sl-mc-plan','mc-inst':'sl-mc-inst'};
+  Object.values(map).forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
+  const activeEl=document.getElementById(map[tab]);
+  if(activeEl) activeEl.style.display='';
+  const sc=SETT_CODE_TABLE.find(x=>x.id===_selMCode);
+  if(!sc) return;
+  if(tab==='mc-mvno') renderMVNOSettTab(sc);
+  if(tab==='mc-plan') renderPlanTab(sc);
+  if(tab==='mc-inst') renderInstTab(sc);
+}
+document.querySelectorAll('#slide-tabs-mc .sl-tab').forEach(t=>t.onclick=()=>switchMCodeTab(t.dataset.mctab));
+
+function renderMVNOSettTab(sc){
+  const data=getMVNOSettByMcode(sc.id);
+  const el=document.getElementById('sl-mc-mvno');
+  const grandTot=data.reduce((a,d)=>a+d.total,0);
+  let h=`
+  <div style="font-size:10px;color:var(--txt4);font-weight:700;margin-bottom:8px">
+    🏢 MVNO별 <b style="color:#ef4444">${sc.id}</b> (${sc.mid}) 정산 현황
+  </div>
+  <div style="overflow-x:auto;margin-bottom:10px">
+  <table class="mc-tbl">
+    <thead><tr>
+      <th>MVNO</th>
+      ${sc.subs.map(s=>`<th style="text-align:right">${s.scode}<br><span style="font-size:9px;font-weight:400;color:var(--txt4)">${s.name.length>8?s.name.slice(0,7)+'…':s.name}</span></th>`).join('')}
+      <th style="text-align:right;color:var(--gold)">합계</th>
+    </tr></thead>
+    <tbody>
+      ${data.map(d=>`<tr>
+        <td style="font-weight:700;white-space:nowrap;font-size:10px">${d.mvno}</td>
+        ${sc.subs.map(s=>`<td class="num">${fmtN(d.subs[s.scode]||0)}</td>`).join('')}
+        <td class="num" style="color:var(--gold)">${fmtN(d.total)}</td>
+      </tr>`).join('')}
+    </tbody>
+    <tfoot><tr class="tot-row">
+      <td>합계</td>
+      ${sc.subs.map(s=>`<td class="num">${fmtN(data.reduce((a,d)=>a+(d.subs[s.scode]||0),0))}</td>`).join('')}
+      <td class="num">${fmtN(grandTot)}</td>
+    </tr></tfoot>
+  </table>
+  </div>
+  <div style="font-size:10px;color:var(--txt4);text-align:right">* 시뮬레이션 데이터 (전월 기준)</div>`;
+  el.innerHTML=h;
+}
+
+function renderPlanTab(sc){
+  const el=document.getElementById('sl-mc-plan');
+  const plans=PLANS_BY_MCODE[sc.id]||[];
+  let h=`<div style="font-size:10px;color:var(--txt4);font-weight:700;margin-bottom:8px">
+    📦 <b style="color:#ef4444">${sc.id}</b> 적용 요금제 (${sc.mid})
+  </div>`;
+  if(plans.length===0){
+    h+=`<div style="color:var(--txt4);text-align:center;padding:40px 0;font-size:12px">등록된 요금제 없음</div>`;
+  } else {
+    plans.forEach(p=>{
+      const detailRows=[];
+      if(p.wholesaleRate) detailRows.push(['도매대가율',Math.round(p.wholesaleRate*100)+'%']);
+      if(p.prePeriod) detailRows.push(['기간이전단가',p.prePeriod.toLocaleString()+'원']);
+      if(p.postPeriod) detailRows.push(['기간이후단가',p.postPeriod.toLocaleString()+'원']);
+      if(p.voiceRate) detailRows.push(['음성종량단가',p.voiceRate+'원/분']);
+      if(p.dataRate) detailRows.push(['데이터종량단가',p.dataRate+'원/MB']);
+      if(p.voiceTotal) detailRows.push(['음성총량단가',p.voiceTotal+'원/분']);
+      if(p.dataTotal) detailRows.push(['데이터총량단가',p.dataTotal+'원/GB']);
+      if(p.billing) detailRows.push(['청구대행수수료',p.billing+'원/건']);
+      if(p.collection) detailRows.push(['수납대행수수료',p.collection+'원/건']);
+      if(p.intlVoice) detailRows.push(['국제음성',p.intlVoice+'원/분']);
+      if(p.intlSMS) detailRows.push(['국제SMS',p.intlSMS+'원/건']);
+      h+=`<div class="mc-plan-card">
+        <div style="font-weight:800;font-size:12px;color:var(--txt);margin-bottom:4px">${p.name}</div>
+        <div style="font-size:10px;color:var(--acc2);margin-bottom:8px">${p.desc||''}</div>
+        <table style="width:100%;font-size:10px">
+          ${p.baseFee?`<tr><td style="color:var(--txt4)">기본요금</td><td style="font-weight:700;text-align:right">${p.baseFee.toLocaleString()}원</td></tr>`:''}
+          ${detailRows.map(([k,v])=>`<tr><td style="color:var(--txt4)">${k}</td><td style="font-weight:700;text-align:right">${v}</td></tr>`).join('')}
+        </table>
+      </div>`;
+    });
+  }
+  el.innerHTML=h;
+}
+
+function renderInstTab(sc){
+  const el=document.getElementById('sl-mc-inst');
+  const all=SETT_INSTANCES.filter(i=>i.mcode===sc.id);
+  const filtered=_mcInstSearch
+    ? all.filter(i=>i.name.includes(_mcInstSearch)||i.mvno.includes(_mcInstSearch)||(i.scode&&i.scode.includes(_mcInstSearch)))
+    : all;
+
+  let h=`
+  <div class="srch-bar" style="margin-bottom:6px">
+    <input class="srch-input" placeholder="고객명·MVNO·소코드 검색" value="${_mcInstSearch}"
+      oninput="window._mcInstSearch=this.value;_mcInstSearch=this.value;renderInstTab(SETT_CODE_TABLE.find(x=>x.id==='${sc.id}'))"/>
+  </div>
+  <div style="font-size:10px;color:var(--txt4);margin-bottom:8px">${filtered.length}/${all.length}명</div>`;
+
+  if(all.length===0){
+    h+=`<div style="color:var(--txt4);text-align:center;padding:40px 0;font-size:12px">
+      <div style="font-size:28px;margin-bottom:8px">∅</div>
+      ${sc.id}에 등록된 인스턴스 없음
+    </div>`;
+  } else if(filtered.length===0){
+    h+=`<div style="color:var(--txt4);text-align:center;padding:30px 0;font-size:12px">검색 결과 없음</div>`;
+  } else {
+    filtered.forEach(inst=>{
+      const isSelected=_selMCodeInst===inst.id;
+      const scDef=sc.subs.find(s=>s.scode===inst.scode);
+      const amtColor=inst.settAmt<0?'var(--grn)':'var(--gold)';
+      h+=`<div class="mc-inst-item${isSelected?' active':''}" onclick="selectMCodeInst('${inst.id}','${sc.id}')">
+        <div class="si-name">${inst.name}</div>
+        <div class="si-meta">
+          <span>${inst.mvno}</span>
+          <span class="bdg bo">${inst.planName}</span>
+          <span class="bdg" style="background:#ef444422;color:#ef4444">${inst.scode}</span>
+        </div>
+        <div class="si-amt" style="color:${amtColor}">${fmtN(inst.settAmt)}</div>
+        ${isSelected?renderInstDetail(inst,scDef):''}
+      </div>`;
+    });
+  }
+  el.innerHTML=h;
+}
+
+function renderInstDetail(inst,scDef){
+  const rows=[];
+  if(inst.baseFee) rows.push(['기본요금',inst.baseFee.toLocaleString()+'원']);
+  if(inst.rate&&inst.rate<1) rows.push(['정산요율',Math.round(inst.rate*100)+'%']);
+  if(inst.activeDays) rows.push(['활성일수',inst.activeDays+'/'+inst.totalDays+'일']);
+  if(inst.excess!==undefined) rows.push(['초과량',inst.excess+(inst.mcode==='M0003'&&inst.scode==='S0007'?'MB':'분')]);
+  if(inst.used!==undefined) rows.push(['사용량',inst.used+(inst.scode==='S0016'?'GB':'분')]);
+  if(inst.fee!==undefined) rows.push(['수수료',inst.fee+'원/건']);
+  if(inst.rsBase) rows.push(['RS기준금액',fmtN(inst.rsBase)]);
+  const amtColor=inst.settAmt<0?'var(--grn)':'#fde68a';
+  return `<div class="mc-calc-box">
+    <div style="font-size:10px;font-weight:700;color:#ef4444;margin-bottom:8px">🧮 정산 계산</div>
+    <table style="width:100%;font-size:10px;margin-bottom:8px">
+      <tr><td style="color:var(--txt4);padding:2px 0">소분류</td>
+          <td style="font-weight:700;text-align:right">${inst.scode}${scDef?' '+scDef.name:''}</td></tr>
+      <tr><td style="color:var(--txt4);padding:2px 0">MVNO</td><td style="text-align:right">${inst.mvno}</td></tr>
+      ${rows.map(([k,v])=>`<tr><td style="color:var(--txt4);padding:2px 0">${k}</td><td style="font-weight:700;text-align:right">${v}</td></tr>`).join('')}
+    </table>
+    <div style="font-size:18px;font-weight:900;color:${amtColor};text-align:center;padding:6px 0;border-top:1px solid var(--bdr2)">${fmtN(inst.settAmt)}</div>
+    ${inst.calc?`<div style="font-size:10px;color:var(--txt3);text-align:center;margin-top:4px">${inst.calc}</div>`:''}
+  </div>`;
+}
+
+window.selectMCodeInst=function(instId, mcodeId){
+  _selMCodeInst=(_selMCodeInst===instId)?null:instId;
+  const sc=SETT_CODE_TABLE.find(x=>x.id===mcodeId);
+  renderInstTab(sc);
+  // 그래프 경로 하이라이트
+  if(_selMCodeInst){
+    const inst=SETT_INSTANCES.find(i=>i.id===instId);
+    const hi=new Set(['CustomerRegistration','Product','SettlementRate',mcodeId,'BaseFeeWholesaleItem','SettlementItem','Invoice']);
+    nodeSel.classed('dn2',d=>!hi.has(d.id));
+    nodeSel.select('.nr').attr('stroke-width',d=>hi.has(d.id)?2:1.5);
+    linkSel.classed('dl2',d=>{
+      const s=typeof d.source==='object'?d.source.id:d.source;
+      const t=typeof d.target==='object'?d.target.id:d.target;
+      return !hi.has(s)||!hi.has(t);
+    });
+  } else {
+    updateGraph();
+  }
+};
+
+// ═══════════════════════════════════════════════
+// 슬라이드 열기/닫기
+// ═══════════════════════════════════════════════
+function openSlide(d){
+  const dom=DOMAINS[d.domain];
+  document.getElementById('slide-color-bar').style.background=dom.color;
+  document.getElementById('slide-title').textContent=d.label;
+  document.getElementById('slide').classList.add('open');
+  document.getElementById('slide-title').style.color=dom.color;
+  document.getElementById('slide-tabs').style.display='flex';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  renderSlideInfo(d);
+  renderSlideMVNO();
+  renderSlideProd();
+  renderSlideInstances(d);
+  renderSlideCalc();
+  renderSlideWhatif();
+  switchSlideTab('info');
+}
+
+function closeSlide(){
+  document.getElementById('slide').classList.remove('open');
+  clearExpand();
+  if(_sampleActive) clearSampleInstance();
+  document.getElementById('slide-tabs').style.display='';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  const det=document.getElementById('sl-mvno-det');
+  if(det) det.style.display='none';
+  _selMCode=null; _selMCodeInst=null; _mcInstSearch='';
+  if(currentView==='ontology'){
+    State.selClass=null; State.selSub=null;
+    State.pathAnim=false;
+    document.getElementById('path-btn').style.display='none';
+    nodeSel.classed('dn2',false).classed('path-animated',false);
+    nodeSel.select('.nr').attr('stroke',d=>DOMAINS[d.domain].color).attr('stroke-width',1.5)
+      .attr('fill',d=>DOMAINS[d.domain].color+'1a');
+    linkSel.classed('dl2',false);
+    document.getElementById('hint').style.opacity='1';
+  }
+  selMVNO=null;
+}
+
+// ═══════════════════════════════════════════════
+// 슬라이드 탭 내용
+// ═══════════════════════════════════════════════
+function renderSlideInfo(d){
+  const dom=DOMAINS[d.domain];
+  const meta=CLASS_META[d.id]||{props:[],desc:''};
+  const outLinks=OWL_LINKS.filter(l=>l.s===d.id&&l.type==='obj');
+  const inLinks=OWL_LINKS.filter(l=>l.t===d.id&&l.type==='obj');
+  const parents=OWL_LINKS.filter(l=>l.s===d.id&&l.type==='sub');
+  document.getElementById('sl-info').innerHTML=`
+    <span class="cls-badge" style="background:${dom.color}22;color:${dom.color};border:1px solid ${dom.color}44">${dom.label} 도메인</span>
+    ${d.abstract?'<span class="cls-badge" style="background:#fbbf2422;color:#fbbf24;border:1px solid #fbbf2444;margin-left:4px">추상 클래스</span>':''}
+    <div class="cls-sub-lbl" style="margin-top:8px;font-size:12px;color:#c9d1d9">${meta.desc||d.sub}</div>
+    ${meta.props.length?`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">데이터 속성</div>
+    <div>${meta.props.map(p=>`<span class="prop-chip">${p}</span>`).join('')}</div>`:''}
+    ${parents.length?`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">상위 클래스</div>
+    ${parents.map(l=>`<div class="rel-row"><span class="rel-arrow">↑</span><span style="color:#9ca3af">${l.t}</span></div>`).join('')}`:''}
+    ${outLinks.length?`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">출력 관계 (→)</div>
+    ${outLinks.map(l=>`<div class="rel-row"><span class="rel-arrow">→</span><span class="rel-lbl">${l.lbl}</span><span class="rel-target">${l.t}</span></div>`).join('')}`:''}
+    ${inLinks.length?`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">입력 관계 (←)</div>
+    ${inLinks.map(l=>`<div class="rel-row"><span class="rel-arrow">←</span><span class="rel-lbl">${l.lbl}</span><span class="rel-target">${l.s}</span></div>`).join('')}`:''}
+  `;
+}
+
+function calcAllRes(){
+  return SUBSCRIBERS.map(sub=>{
+    const prod=PRODUCTS.find(p=>p.id===sub.productId);
+    const res=calcAllItems(sub,prod,RATES[sub.productId],BILLING);
+    return{sub,prod,res};
+  });
+}
+
+function renderSlideMVNO(){
+  const allRes=calcAllRes();
+  const grandAmts=new Array(39).fill(0);
+  allRes.forEach(({res})=>res.amounts.forEach((a,i)=>{grandAmts[i]+=a;}));
+  const grandTotal=grandAmts.reduce((a,b)=>a+b,0);
+  const grandNeg=grandAmts.filter(a=>a<0).reduce((a,b)=>a+b,0);
+  let h=`<div class="mvno-grand">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:16px">🏢</span>
+      <div><div style="font-size:13px;font-weight:800;color:var(--txt)">MVNO_ABC</div>
+        <div style="font-size:10px;color:var(--txt4)">2025년 6월 정산 (${BILLING.totalDays}일)</div></div>
+    </div>
+    <div class="mvno-stat-grid">
+      <div class="mvno-stat"><div class="mvno-stat-val">${SUBSCRIBERS.length}명</div><div class="mvno-stat-lbl">총 가입자</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val">${PRODUCTS.length}종</div><div class="mvno-stat-lbl">운용 요금제</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val" style="color:var(--grn)">${fmtN(grandNeg)}</div><div class="mvno-stat-lbl">공제·인센티브</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val">${fmtN(grandTotal)}</div><div class="mvno-stat-lbl">순 정산 합계</div></div>
+    </div>
+  </div>
+  <div style="font-size:10px;color:var(--txt4);font-weight:700;margin:12px 0 6px">📊 정산항목별 전체 합계</div>`;
+  SETT_CATS.forEach(cat=>{
+    const catDefs=SETT_DEFS.filter(d=>d.cat===cat.id);
+    const catAmts=catDefs.map(d=>{const i=parseInt(d.id.slice(1))-1;return grandAmts[i];});
+    const catTotal=catAmts.reduce((a,b)=>a+b,0);
+    if(catAmts.every(a=>a===0)) return;
+    h+=`<div class="cat-hdr" style="background:${cat.color}18;border-left:3px solid ${cat.color}">
+      <span class="cat-hdr-lbl" style="color:${cat.color}">${cat.name}</span>
+      <span class="cat-hdr-amt">${fmt(catTotal)}</span></div>`;
+    catDefs.forEach((def,i)=>{
+      const amt=catAmts[i]; if(amt===0) return;
+      h+=`<div class="mvno-sum-row"><span class="mvno-sum-lbl">${def.name}</span>
+        <span class="mvno-sum-val${amt<0?' neg-amt':''}">${fmt(amt)}</span></div>`;
+    });
+  });
+  h+=`<div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:8px;border-top:1px solid var(--bdr2)">
+    <span style="font-size:11px;font-weight:700;color:var(--acc2)">MVNO_ABC 총 정산</span>
+    <span style="font-size:14px;font-weight:800;color:var(--gold)">${fmtN(grandTotal)}</span></div>`;
+  document.getElementById('sl-mvno').innerHTML=h;
+}
+window.renderSlideMVNO=renderSlideMVNO;
+
+function renderSlideProd(){
+  const pf=Srch.mvno.prod; const cf=Srch.mvno.cat;
+  const allRes=calcAllRes();
+  let h=`<div class="srch-bar">
+    <select class="srch-select" onchange="Srch.mvno.prod=this.value;renderSlideProd()">
+      <option value="ALL" ${pf==='ALL'?'selected':''}>전체 요금제</option>
+      ${PRODUCTS.map(p=>`<option value="${p.id}" ${pf===p.id?'selected':''}>${p.name}</option>`).join('')}
+    </select>
+    <select class="srch-select" onchange="Srch.mvno.cat=this.value;renderSlideProd()">
+      <option value="ALL" ${cf==='ALL'?'selected':''}>전체 항목</option>
+      ${SETT_CATS.map(c=>`<option value="${c.id}" ${cf===c.id?'selected':''}>${c.name}</option>`).join('')}
+    </select>
+  </div>`;
+  const prodList=pf==='ALL'?PRODUCTS:PRODUCTS.filter(p=>p.id===pf);
+  prodList.forEach(prod=>{
+    const subsOfProd=allRes.filter(r=>r.prod.id===prod.id);
+    if(subsOfProd.length===0) return;
+    const pAmts=new Array(39).fill(0);
+    subsOfProd.forEach(({res})=>res.amounts.forEach((a,i)=>{pAmts[i]+=a;}));
+    const pTotal=pAmts.reduce((a,b)=>a+b,0);
+    const pid=prod.id;
+    h+=`<div class="prod-section">
+      <div class="prod-hdr" onclick="toggleProd('${pid}')">
+        <div><div class="prod-hdr-name">${prod.name}</div>
+          <div class="prod-hdr-meta">가입자 ${subsOfProd.length}명 · ${prod.type==='bundled'?'결합':'음성'}상품</div></div>
+        <div class="prod-hdr-amt">${fmtN(pTotal)}</div>
+      </div>
+      <div class="prod-body" id="pb-${pid}">`;
+    const catsToShow=cf==='ALL'?SETT_CATS:SETT_CATS.filter(c=>c.id===cf);
+    catsToShow.forEach(cat=>{
+      const catDefs=SETT_DEFS.filter(d=>d.cat===cat.id);
+      const catAmts=catDefs.map(d=>{const i=parseInt(d.id.slice(1))-1;return pAmts[i];});
+      const catTotal=catAmts.reduce((a,b)=>a+b,0);
+      if(catAmts.every(a=>a===0)) return;
+      h+=`<div class="cat-hdr" style="background:${cat.color}18;border-left:3px solid ${cat.color}">
+        <span class="cat-hdr-lbl" style="color:${cat.color}">${cat.name}</span>
+        <span class="cat-hdr-amt">${fmt(catTotal)}</span></div>`;
+      catDefs.forEach((def,i)=>{
+        const amt=catAmts[i]; if(amt===0) return;
+        h+=`<div class="mvno-sum-row"><span class="mvno-sum-lbl">${def.name}</span>
+          <span class="mvno-sum-val${amt<0?' neg-amt':''}">${fmt(amt)}</span></div>`;
+      });
+    });
+    h+=`</div></div>`;
+  });
+  document.getElementById('sl-prod').innerHTML=h;
+  prodList.forEach(p=>{
+    const el=document.getElementById('pb-'+p.id);
+    if(el&&prodList.length===1) el.classList.add('open');
+  });
+}
+window.renderSlideProd=renderSlideProd;
+window.toggleProd=function(id){ const el=document.getElementById('pb-'+id); if(el) el.classList.toggle('open'); };
+
+function renderSlideInstances(d){
+  const subs=CLASS_SUBS[d.id];
+  if(!subs||subs.length===0){
+    document.getElementById('sl-instances').innerHTML=`<div style="color:#6b7280;text-align:center;padding:40px 0;font-size:13px"><div style="font-size:32px;margin-bottom:8px">∅</div>이 클래스의 직접 인스턴스가 없습니다</div>`;
+    return;
+  }
+  const {text,esim,prepaid,excess}=Srch.inst;
+  let filtered=subs.filter(sid=>{
+    const sub=SUBSCRIBERS.find(s=>s.id===sid);
+    const prod=PRODUCTS.find(p=>p.id===sub.productId);
+    if(text&&!sub.name.toLowerCase().includes(text.toLowerCase())&&!prod.name.toLowerCase().includes(text.toLowerCase())) return false;
+    if(esim&&!sub.isESIM) return false;
+    if(prepaid&&!sub.isPrepaid) return false;
+    if(excess){const res=calcAllItems(sub,prod,RATES[sub.productId],BILLING);if(!res.excV&&!res.excVid&&!res.excSMS&&!res.excData) return false;}
+    return true;
+  });
+  let h=`<div class="srch-bar" style="flex-wrap:wrap;gap:4px">
+    <input class="srch-input" placeholder="가입자명·요금제 검색" value="${text}"
+      oninput="Srch.inst.text=this.value;renderSlideInstances(OWL_NODES.find(n=>n.id===State.selClass)||{id:''})"/>
+  </div>
+  <div class="srch-bar" style="flex-wrap:wrap;gap:4px;margin-top:-4px">
+    <span class="srch-chip${esim?' on':''}" onclick="Srch.inst.esim=!Srch.inst.esim;renderSlideInstances(OWL_NODES.find(n=>n.id===State.selClass)||{id:''})">eSIM</span>
+    <span class="srch-chip${prepaid?' on':''}" onclick="Srch.inst.prepaid=!Srch.inst.prepaid;renderSlideInstances(OWL_NODES.find(n=>n.id===State.selClass)||{id:''})">선불</span>
+    <span class="srch-chip${excess?' on':''}" onclick="Srch.inst.excess=!Srch.inst.excess;renderSlideInstances(OWL_NODES.find(n=>n.id===State.selClass)||{id:''})">초과있음</span>
+    <span style="font-size:10px;color:#6b7280;margin-left:auto">${filtered.length}/${subs.length}명</span>
+  </div>`;
+  if(filtered.length===0){h+=`<div style="color:#6b7280;text-align:center;padding:30px 0;font-size:12px">검색 결과 없음</div>`;}
+  filtered.forEach(sid=>{
+    const sub=SUBSCRIBERS.find(s=>s.id===sid);
+    const prod=PRODUCTS.find(p=>p.id===sub.productId);
+    const res=calcAllItems(sub,prod,RATES[sub.productId],BILLING);
+    const excAny=res.excV>0||res.excVid>0||res.excSMS>0||res.excData>0;
+    h+=`<div class="sub-item${State.selSub===sid?' active':''}" onclick="onSubSel('${sid}')">
+      <div class="si-name">${sub.name}</div>
+      <div class="si-meta"><span>${prod.name}</span><span class="bdg bo">가입: ${sub.joinDate}</span><span class="bdg bb">활성 ${res.days}일</span>
+        ${sub.isESIM?'<span class="bdg" style="background:#7c3aed22;color:#a78bfa">eSIM</span>':''}
+        ${sub.isPrepaid?'<span class="bdg" style="background:#f59e0b22;color:#f59e0b">선불</span>':''}
+        ${excAny?`<span class="bdg br">초과있음</span>`:''}
+      </div>
+      <div class="si-amt">${fmtN(res.total)}</div>
+    </div>`;
+  });
+  document.getElementById('sl-instances').innerHTML=h;
+}
+
+function renderSlideCalc(){
+  if(!State.selSub){
+    document.getElementById('sl-calc').innerHTML=`<div style="color:#6b7280;text-align:center;padding:40px 0;font-size:13px"><div style="font-size:32px;margin-bottom:8px">👆</div>인스턴스 탭에서 가입자를 선택하세요</div>`;
+    return;
+  }
+  const sub=SUBSCRIBERS.find(s=>s.id===State.selSub);
+  const prod=PRODUCTS.find(p=>p.id===sub.productId);
+  const rate=RATES[sub.productId];
+  const res=calcAllItems(sub,prod,rate,BILLING);
+  const nonZeroCnt=res.amounts.filter(a=>a!==0).length;
+  let h=`<div style="margin-bottom:10px">
+    <div style="font-weight:700;font-size:13px;color:#e6edf3">${sub.name}</div>
+    <div style="font-size:11px;color:#6b7280">${prod.name} · 가입: ${sub.joinDate} · 활성 ${res.days}일</div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      ${sub.isESIM?'<span class="bdg" style="background:#7c3aed22;color:#a78bfa;font-size:9px">eSIM</span>':''}
+      ${sub.isPrepaid?'<span class="bdg" style="background:#f59e0b22;color:#f59e0b;font-size:9px">선불</span>':''}
+      <span style="font-size:9px;color:#6b7280">RS기준: ${fmtN(res.rsBase)}</span>
+    </div></div>`;
+  SETT_CATS.forEach(cat=>{
+    const catDefs=SETT_DEFS.filter(d=>d.cat===cat.id);
+    const catAmts=catDefs.map(d=>{const i=parseInt(d.id.slice(1))-1;return res.amounts[i];});
+    const catTotal=catAmts.reduce((a,b)=>a+b,0);
+    if(!catAmts.some(a=>a!==0)) return;
+    h+=`<div class="cat-hdr" style="background:${cat.color}18;border-left:3px solid ${cat.color}">
+      <span class="cat-hdr-lbl" style="color:${cat.color}">${cat.name}</span>
+      <span class="cat-hdr-amt">${fmt(catTotal)}</span></div>`;
+    catDefs.forEach((def,i)=>{
+      const amt=catAmts[i]; const isNeg=amt<0;
+      h+=`<div class="det-row${amt===0?' det-row-zero':''}">
+        <span class="det-lbl" style="font-size:10.5px">${def.name}</span>
+        <span class="det-val${isNeg?' neg-amt':''}" style="font-size:11px">${fmt(amt)}</span></div>`;
+      if(def.id==='i01'&&amt!==0){
+        h+=`<div style="font-size:9px;color:#484f58;padding:1px 0 4px 4px">${prod.baseFee.toLocaleString()}원 × ${(rate.wholesaleRate*100).toFixed(0)}% × ${res.days}/${BILLING.totalDays}일</div>`;
+      }
+    });
+  });
+  const nonNegTotal=res.amounts.filter(a=>a>0).reduce((a,b)=>a+b,0);
+  const discountTotal=res.amounts.filter(a=>a<0).reduce((a,b)=>a+b,0);
+  h+=`<div class="det-tot" style="margin-top:10px">
+    <span class="det-tot-lbl">총 정산 금액<span style="font-size:9px;display:block;margin-top:1px;color:#60a5fa">${nonZeroCnt}개 항목 · 공제 ${fmtN(discountTotal)}</span></span>
+    <span class="det-tot-val">${fmtN(res.total)}</span></div>
+  <button class="wi-btn" style="margin-top:10px" onclick="showPathAnim()">✨ 온톨로지 경로 보기</button>`;
+  document.getElementById('sl-calc').innerHTML=h;
+}
+
+function renderSlideWhatif(){
+  if(!State.selSub){
+    document.getElementById('sl-whatif').innerHTML=`<div style="color:#6b7280;text-align:center;padding:40px 0;font-size:13px"><div style="font-size:32px;margin-bottom:8px">👆</div>인스턴스 탭에서 가입자를 선택하세요</div>`;
+    return;
+  }
+  const sub=SUBSCRIBERS.find(s=>s.id===State.selSub);
+  const prod=PRODUCTS.find(p=>p.id===sub.productId);
+  const baseRate=RATES[sub.productId];
+  const baseRes=calcAllItems(sub,prod,baseRate,BILLING);
+  const rOv={};
+  if(wiOv.wholesaleRate!==undefined) rOv.wholesaleRate=wiOv.wholesaleRate;
+  if(wiOv.billingAgencyFee!==undefined) rOv.billingAgencyFee=wiOv.billingAgencyFee;
+  if(wiOv.collectionFee!==undefined) rOv.collectionFee=wiOv.collectionFee;
+  if(wiOv.excessVoiceRate!==undefined) rOv.excessVoiceRate=wiOv.excessVoiceRate;
+  const sOv={};
+  if(wiOv.joinDate!==undefined) sOv.joinDate=wiOv.joinDate;
+  if(wiOv.usedVoice!==undefined) sOv.usedVoice=wiOv.usedVoice;
+  if(wiOv.usedData!==undefined) sOv.usedData=wiOv.usedData;
+  if(Object.keys(sOv).length>0) rOv._sub=sOv;
+  const scRes=calcAllItems(sub,prod,baseRate,BILLING,rOv);
+  const changed=SETT_DEFS.filter((_,i)=>Math.abs(baseRes.amounts[i]-scRes.amounts[i])>0.5);
+  const totalDiff=scRes.total-baseRes.total;
+  const cr=wiOv.wholesaleRate??baseRate.wholesaleRate;
+  const cj=wiOv.joinDate??sub.joinDate;
+  const cv=wiOv.usedVoice!==undefined?wiOv.usedVoice:sub.usedVoice;
+  const cd=wiOv.usedData!==undefined?wiOv.usedData:sub.usedData;
+  const cbf=wiOv.billingAgencyFee??baseRate.billingAgencyFee;
+  const ccf=wiOv.collectionFee??baseRate.collectionFee;
+  const cev=wiOv.excessVoiceRate??baseRate.excessVoiceRate;
+  document.getElementById('sl-whatif').innerHTML=`
+    <div style="margin-bottom:10px;font-weight:700;font-size:12px;color:#a78bfa">⚡ What-if — ${sub.name}</div>
+    <div class="wi-lbl">① 기본료 도매수수료율</div>
+    <div class="wi-row"><input type="range" class="wi-slider" min="10" max="80" step="1" value="${Math.round(cr*100)}"
+      oninput="wiOv.wholesaleRate=this.value/100;renderSlideWhatif()"/>
+      <span class="wi-val">${Math.round(cr*100)}%</span></div>
+    <div class="wi-lbl">가입일</div>
+    <input type="date" class="wi-input" value="${cj}" min="2025-06-01" max="2025-06-30"
+      style="margin-bottom:8px" onchange="wiOv.joinDate=this.value;renderSlideWhatif()"/>
+    <div class="wi-lbl">음성 사용량 (분)</div>
+    <input type="number" class="wi-input" value="${cv}" min="0" style="margin-bottom:8px"
+      oninput="wiOv.usedVoice=+this.value;renderSlideWhatif()"/>
+    <div class="wi-lbl">데이터 사용량 (GB)</div>
+    <input type="number" class="wi-input" value="${cd}" min="0" step="1" style="margin-bottom:8px"
+      oninput="wiOv.usedData=+this.value;renderSlideWhatif()"/>
+    <div class="wi-lbl">청구대행수수료 (원/건)</div>
+    <div class="wi-row"><input type="range" class="wi-slider" min="0" max="500" step="10" value="${cbf}"
+      oninput="wiOv.billingAgencyFee=+this.value;renderSlideWhatif()"/>
+      <span class="wi-val">${cbf}</span></div>
+    <div class="wi-lbl">수납대행수수료 (원/건)</div>
+    <div class="wi-row"><input type="range" class="wi-slider" min="0" max="500" step="10" value="${ccf}"
+      oninput="wiOv.collectionFee=+this.value;renderSlideWhatif()"/>
+      <span class="wi-val">${ccf}</span></div>
+    <div class="wi-lbl">음성 초과종량 단가 (원/분)</div>
+    <div class="wi-row"><input type="range" class="wi-slider" min="0" max="10" step="0.1" value="${cev}"
+      oninput="wiOv.excessVoiceRate=+this.value;renderSlideWhatif()"/>
+      <span class="wi-val">${cev.toFixed(1)}</span></div>
+    ${changed.length>0?`
+    <div style="font-size:10px;color:#6b7280;margin:10px 0 4px;font-weight:700">변경된 항목 ${changed.length}개</div>
+    <table class="cmp-table"><thead><tr><th>항목</th><th>현재</th><th>시나리오</th><th>차이</th></tr></thead><tbody>
+    ${changed.map(def=>{const i=parseInt(def.id.slice(1))-1;const b=baseRes.amounts[i];const s=scRes.amounts[i];const d=s-b;
+      return`<tr><td style="font-size:9.5px">${def.name}</td><td>${fmt(b)}</td><td>${fmt(s)}</td>
+        <td class="${d>0?'dn':d<0?'dp':''}">${d===0?'—':(d>0?'+':'')+fmt(d)}</td></tr>`;}).join('')}
+    <tr style="font-weight:700;background:#1f2d40"><td>합계</td><td>${fmtN(baseRes.total)}</td><td>${fmtN(scRes.total)}</td>
+      <td class="${totalDiff>0?'dn':totalDiff<0?'dp':''}">${totalDiff===0?'—':(totalDiff>0?'+':'')+fmt(totalDiff)}</td></tr>
+    </tbody></table>`:'<div style="color:#3fb950;text-align:center;padding:15px;font-size:12px">⚠️ 아직 변경된 항목이 없습니다</div>'}
+    <button class="wi-btn wi-btn-reset" style="margin-top:8px" onclick="wiOv={};renderSlideWhatif()">초기화</button>`;
+}
+window.renderSlideWhatif=renderSlideWhatif;
+
+window.onSubSel=function(id){
+  State.selSub=id; wiOv={};
+  updateGraph();
+  const clsNode=OWL_NODES.find(n=>n.id===State.selClass)||{id:''};
+  renderSlideInstances(clsNode);
+  renderSlideCalc();
+  renderSlideWhatif();
+  document.getElementById('path-btn').style.display='block';
+  switchSlideTab('calc');
+};
+
+window.showPathAnim=function(){
+  if(!State.selSub) return;
+  State.pathAnim=true;
+  const path=getSubPath(State.selSub);
+  nodeSel.classed('path-animated',d=>path.has(d.id));
+  document.getElementById('path-btn').textContent='✨ 경로 애니메이션 중...';
+  setTimeout(()=>{
+    nodeSel.classed('path-animated',false);
+    document.getElementById('path-btn').textContent='✨ 정산 흐름 애니메이션';
+    State.pathAnim=false;
+  },4000);
+};
+window.togglePathAnim=window.showPathAnim;
+
+function switchSlideTab(tab){
+  document.querySelectorAll('.sl-tab').forEach(t=>t.classList.toggle('active',t.dataset.stab===tab));
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  document.getElementById('sl-'+tab).style.display='';
+  if(tab==='whatif') renderSlideWhatif();
+  if(tab==='mvno')  renderSlideMVNO();
+  if(tab==='prod')  renderSlideProd();
+}
+document.querySelectorAll('#slide-tabs .sl-tab').forEach(t=>t.onclick=()=>switchSlideTab(t.dataset.stab));
+
+const tip=document.getElementById('gtip');
+function showTip(e,d){
+  const inc=(CLASS_SUBS[d.id]||[]).length;
+  const dom=DOMAINS[d.domain];
+  const isMCode=!!SETT_CODE_TABLE.find(x=>x.id===d.id);
+  tip.innerHTML=`<div style="font-weight:700;color:${dom.color}">${d.label}</div>
+    <div style="color:#9ca3af">${d.sub}${d.abstract?' · 추상':''}</div>
+    ${isMCode?`<div style="color:#ef4444;margin-top:3px;font-size:10px">클릭: MVNO/요금제/인스턴스 탭</div>`:''}
+    ${inc?`<div style="color:#3fb950;margin-top:3px">관련 가입자 ${inc}명</div>`:''}
+    <div style="color:#6b7280;margin-top:2px;font-size:10px">클릭해서 상세 보기</div>`;
+  tip.style.display='block';
+}
+function hideTip(){tip.style.display='none';}
+document.getElementById('graph-svg').addEventListener('mousemove',e=>{
+  const r=gArea.getBoundingClientRect();
+  tip.style.left=(e.clientX-r.left+14)+'px';
+  tip.style.top=(e.clientY-r.top-10)+'px';
+});
+
+document.getElementById('btn-all').onclick=function(){
+  document.querySelectorAll('.hb').forEach(b=>b.classList.remove('active'));this.classList.add('active');
+  State.showSub=true;State.showObj=true;updateGraph();
+};
+document.getElementById('btn-cls').onclick=function(){
+  document.querySelectorAll('.hb').forEach(b=>b.classList.remove('active'));this.classList.add('active');
+  State.showSub=true;State.showObj=false;updateGraph();
+};
+document.getElementById('btn-obj').onclick=function(){
+  document.querySelectorAll('.hb').forEach(b=>b.classList.remove('active'));this.classList.add('active');
+  State.showSub=false;State.showObj=true;updateGraph();
+};
+document.getElementById('btn-fit').onclick=fitG;
+document.getElementById('btn-reset').onclick=()=>{
+  nodes.forEach(d=>{d.fx=null;d.fy=null;});
+  sim.alpha(.8).restart();
+  closeSlide();
+};
+document.getElementById('cnt-nodes').textContent=OWL_NODES.length;
+document.getElementById('cnt-links').textContent=OWL_LINKS.length;
+
+const _now=new Date();
+const prevM=_now.getMonth()===0?12:_now.getMonth();
+const prevY=_now.getMonth()===0?_now.getFullYear()-1:_now.getFullYear();
+const PREV_BILLING={year:prevY,month:prevM,totalDays:new Date(prevY,prevM,0).getDate()};
+
+function seededRng(seed){let s=seed>>>0;return()=>{s=(Math.imul(1664525,s)+1013904223)>>>0;return s/4294967296;};}
+const MVNO_SUFFIXES=['알뜰폰','스마트텔','모바일넷','링크통신','디지털폰','에코텔','넥스트모바일','스피드텔','클라우드통신','원패스'];
+const MVNO_DATA=(()=>{
+  const d=[];
+  for(let i=1;i<=50;i++){
+    const r=seededRng(i*31337+999);
+    const id=`MVNO_${String(i).padStart(3,'0')}`;
+    const nm=MVNO_SUFFIXES[(i-1)%MVNO_SUFFIXES.length]+' '+String.fromCharCode(64+Math.ceil(i/MVNO_SUFFIXES.length));
+    const subCount=Math.floor(r()*5000)+100;
+    const prodCount=Math.floor(r()*5)+1;
+    const cats={};
+    SETT_CATS.forEach((cat,ci)=>{
+      const r2=seededRng(i*777+ci*113+42);
+      const base=r2()*15000000+500000;
+      cats[cat.id]=cat.id==='rs'?-Math.round(base*.25/1000)*1000:Math.round(base/1000)*1000;
+    });
+    const total=Object.values(cats).reduce((a,b)=>a+b,0);
+    d.push({id,name:nm,subCount,prodCount,cats,total});
+  }
+  return d;
+})();
+
+const ppM=prevM===1?12:prevM-1;
+const ppY=prevM===1?prevY-1:prevY;
+const PREV_PREV_BILLING={year:ppY,month:ppM,totalDays:new Date(ppY,ppM,0).getDate()};
+const MVNO_DATA_PP=(()=>{
+  const d=[];
+  for(let i=1;i<=50;i++){
+    const r=seededRng(i*31337+555);
+    const m=MVNO_DATA[i-1];
+    const cats={};
+    SETT_CATS.forEach((cat,ci)=>{
+      const r2=seededRng(i*555+ci*77+11);
+      const base=r2()*13000000+400000;
+      cats[cat.id]=cat.id==='rs'?-Math.round(base*.25/1000)*1000:Math.round(base/1000)*1000;
+    });
+    const total=Object.values(cats).reduce((a,b)=>a+b,0);
+    d.push({id:m.id,name:m.name,subCount:Math.floor(r()*4500)+80,prodCount:m.prodCount,cats,total});
+  }
+  return d;
+})();
+
+const treeSvg=d3.select('#tree-svg');
+
+function switchView(mode){
+  currentView=mode;
+  const isMVNO=(mode==='mvno');
+  document.getElementById('graph-svg').style.display=isMVNO?'none':'block';
+  document.getElementById('tree-svg').style.display=isMVNO?'block':'none';
+  document.getElementById('hint').style.display=isMVNO?'none':'block';
+  if(!isMVNO) document.getElementById('hint').style.opacity=State.selClass?'0':'1';
+  document.getElementById('path-btn').style.display='none';
+  document.getElementById('counter').style.display=isMVNO?'none':'block';
+  document.getElementById('tree-counter').style.display=isMVNO?'block':'none';
+  document.getElementById('mvno-style-bar').style.display=isMVNO?'flex':'none';
+  ['btn-all','btn-cls','btn-obj','btn-fit','btn-reset'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display=isMVNO?'none':'';
+  });
+  const sepEl=document.querySelector('#hdr-btns span');
+  if(sepEl) sepEl.style.display=isMVNO?'none':'';
+  const sampleBtn=document.getElementById('btn-sample');
+  if(sampleBtn) sampleBtn.style.display=isMVNO?'none':'';
+  const sepFilter=document.getElementById('sep-filter');
+  if(sepFilter) sepFilter.style.display=isMVNO?'none':'';
+  if(isMVNO && _sampleActive) clearSampleInstance();
+  document.getElementById('btn-view-ont').classList.toggle('active',!isMVNO);
+  document.getElementById('btn-view-mvno').classList.toggle('active',isMVNO);
+  closeSlide();
+  if(isMVNO){ renderMVNOTree(); openMVNOAllSlide(); }
+}
+
+function switchMVNOStyle(style){
+  mvnoStyle=style;
+  document.getElementById('btn-style-bubble').classList.toggle('active',style==='bubble');
+  document.getElementById('btn-style-radial').classList.toggle('active',style==='radial');
+  renderMVNOTree();
+}
+
+function getEffectiveGraphDims(){
+  const ga=document.getElementById('graph-area');
+  const W=ga.clientWidth, H=ga.clientHeight;
+  const slideEl=document.getElementById('slide');
+  const isOpen=slideEl.classList.contains('open')||(currentView==='mvno');
+  const slideW=isOpen?slideEl.offsetWidth:0;
+  const effW=Math.max(W-slideW,160);
+  return{W,H,effW,cx:effW/2,cy:H/2};
+}
+
+function renderMVNOTree(){
+  treeSvg.selectAll('*').remove();
+  treeSvg.on('zoom',null);
+  selMVNO=null; _selHighlight=null;
+  treeSvg.on('mousemove',e=>{
+    const r=document.getElementById('graph-area').getBoundingClientRect();
+    tip.style.left=(e.clientX-r.left+14)+'px';
+    tip.style.top=(e.clientY-r.top-10)+'px';
+  });
+  treeSvg.on('click.bg',()=>{if(selMVNO){selMVNO=null;closeSlide();}});
+  if(mvnoStyle==='bubble') renderBubbleChart();
+  else renderRadialChart();
+}
+
+function getMVNOColorScale(){
+  const totals=MVNO_DATA.map(d=>Math.abs(d.total)).sort((a,b)=>a-b);
+  return d3.scaleQuantile().domain(totals).range(['#ef4444','#f97316','#f59e0b','#3b82f6','#10b981']);
+}
+function getMVNORScale(){
+  const totals=MVNO_DATA.map(d=>Math.abs(d.total));
+  return d3.scaleSqrt().domain([d3.min(totals),d3.max(totals)]).range([14,54]);
+}
+
+function renderBubbleChart(){
+  const {W,H,effW,cx,cy}=getEffectiveGraphDims();
+  const colorScale=getMVNOColorScale();
+  const rScale=getMVNORScale();
+  const bNodes=MVNO_DATA.map((m,i)=>({
+    ...m, ppData:MVNO_DATA_PP[i],
+    r:rScale(Math.abs(m.total)), rPP:rScale(Math.abs(MVNO_DATA_PP[i].total)),
+    color:colorScale(Math.abs(m.total)),
+    x:cx+(seededRng(i*99+1)()*2-1)*Math.min(effW*.3,160),
+    y:cy+28+(seededRng(i*77+2)()*2-1)*Math.min(H*.25,130),
+  }));
+  const tG=treeSvg.append('g');
+  tG.append('text').attr('x',cx).attr('y',20).attr('text-anchor','middle')
+    .attr('font-size','13px').attr('font-weight','800').attr('fill','#c084fc').attr('pointer-events','none')
+    .text('📡 MNO — MVNO 정산 현황');
+  tG.append('text').attr('x',cx).attr('y',36).attr('text-anchor','middle')
+    .attr('font-size','10px').attr('fill','#475569').attr('pointer-events','none')
+    .text(`${PREV_BILLING.year}년 ${PREV_BILLING.month}월 정산 · 원 크기 = 정산금액 비례`);
+  const ghosts=tG.append('g').selectAll('.ghost').data(bNodes).enter()
+    .append('circle').attr('class','ghost').attr('r',d=>d.rPP)
+    .attr('fill','none').attr('stroke',d=>d.total>d.ppData.total?'#10b981':'#ef4444')
+    .attr('stroke-width',1.5).attr('stroke-dasharray','5 3').attr('opacity',0.22).attr('pointer-events','none');
+  const bubbles=tG.append('g').selectAll('.bbl').data(bNodes).enter()
+    .append('circle').attr('class','bbl').attr('r',d=>d.r)
+    .attr('fill',d=>d.color+'2a').attr('stroke',d=>d.color).attr('stroke-width',1.8)
+    .style('cursor','pointer')
+    .on('click',(e,d)=>{e.stopPropagation();onMVNOClick(d);})
+    .on('mouseenter',(e,d)=>{if(d.id!==selMVNO) d3.select(e.currentTarget).attr('stroke','#fbbf24').attr('stroke-width',2.5).attr('fill',d.color+'50');showMVNOTip(e,d);})
+    .on('mouseleave',(e,d)=>{if(d.id!==selMVNO) d3.select(e.currentTarget).attr('stroke',d.color).attr('stroke-width',1.8).attr('fill',d.color+'2a');hideTip();});
+  const lblG=tG.append('g').attr('pointer-events','none');
+  const idLabels=lblG.selectAll('.blbl-id').data(bNodes).enter().append('text').attr('class','blbl-id')
+    .attr('text-anchor','middle').attr('font-weight','700').attr('fill','#e2e8f0')
+    .attr('font-size',d=>Math.min(d.r*.3,10)+'px').attr('dy',d=>d.r>=32?'-4px':'3px')
+    .text(d=>d.id.replace('MVNO_','M'));
+  const amtLabels=lblG.selectAll('.blbl-amt').data(bNodes.filter(d=>d.r>=34)).enter().append('text').attr('class','blbl-amt')
+    .attr('text-anchor','middle').attr('font-size','8px').attr('fill','#fbbf24').attr('dy','11px')
+    .text(d=>fmtN(d.total));
+  _selHighlight=(id)=>{
+    bubbles.attr('stroke',d=>d.id===id?'#fbbf24':d.color)
+      .attr('stroke-width',d=>d.id===id?3:1.8)
+      .attr('fill',d=>d.id===id?d.color+'55':d.color+'2a');
+  };
+  const bSim=d3.forceSimulation(bNodes).alphaDecay(0.025)
+    .force('charge',d3.forceManyBody().strength(6))
+    .force('center',d3.forceCenter(cx,cy+28))
+    .force('collision',d3.forceCollide(d=>d.r+3).iterations(3))
+    .force('x',d3.forceX(cx).strength(0.03))
+    .force('y',d3.forceY(cy+28).strength(0.03))
+    .on('tick',()=>{
+      ghosts.attr('cx',d=>d.x).attr('cy',d=>d.y);
+      bubbles.attr('cx',d=>d.x).attr('cy',d=>d.y);
+      idLabels.attr('x',d=>d.x).attr('y',d=>d.y);
+      amtLabels.attr('x',d=>d.x).attr('y',d=>d.y);
+    });
+}
+
+function renderRadialChart(){
+  const {W,H,effW,cy:_cy}=getEffectiveGraphDims();
+  const cx=effW/2, cy=_cy+18;
+  const colorScale=getMVNOColorScale();
+  const rScaleR=d3.scaleSqrt()
+    .domain([d3.min(MVNO_DATA,d=>Math.abs(d.total)),d3.max(MVNO_DATA,d=>Math.abs(d.total))]).range([10,26]);
+  const minDim=Math.min(W,H);
+  const R1=minDim*.22, R2=minDim*.40;
+  const tZoom=d3.zoom().scaleExtent([.35,2.5]).on('zoom',e=>tG.attr('transform',e.transform));
+  treeSvg.call(tZoom);
+  const tG=treeSvg.append('g');
+  tG.append('text').attr('x',cx).attr('y',20).attr('text-anchor','middle')
+    .attr('font-size','13px').attr('font-weight','800').attr('fill','#c084fc').attr('pointer-events','none')
+    .text('📡 MNO — MVNO 정산 현황');
+  tG.append('text').attr('x',cx).attr('y',35).attr('text-anchor','middle')
+    .attr('font-size','10px').attr('fill','#475569').attr('pointer-events','none')
+    .text(`${PREV_BILLING.year}년 ${PREV_BILLING.month}월 정산`);
+  [R1,R2].forEach(r=>{
+    tG.append('circle').attr('cx',cx).attr('cy',cy).attr('r',r)
+      .attr('fill','none').attr('stroke','#1e3a5f').attr('stroke-width',.6)
+      .attr('stroke-dasharray','3 5').attr('opacity',.4).attr('pointer-events','none');
+  });
+  tG.append('circle').attr('cx',cx).attr('cy',cy).attr('r',36)
+    .attr('fill','#7c3aed22').attr('stroke','#7c3aed').attr('stroke-width',2).attr('pointer-events','none');
+  tG.append('text').attr('x',cx).attr('y',cy-7).attr('text-anchor','middle')
+    .attr('font-size','12px').attr('font-weight','800').attr('fill','#c084fc').attr('pointer-events','none').text('📡 MNO');
+  tG.append('text').attr('x',cx).attr('y',cy+9).attr('text-anchor','middle')
+    .attr('font-size','8px').attr('fill','#7c3aed').attr('pointer-events','none').text('통신망사업자');
+  const allRingNodes=[];
+  [[MVNO_DATA.slice(0,20),R1,20],[MVNO_DATA.slice(20),R2,30]].forEach(([data,ringR,total])=>{
+    data.forEach((m,i)=>{
+      const angle=(i/total)*2*Math.PI-Math.PI/2;
+      const x=cx+ringR*Math.cos(angle); const y=cy+ringR*Math.sin(angle);
+      const pp=MVNO_DATA_PP[MVNO_DATA.indexOf(m)];
+      const r=rScaleR(Math.abs(m.total)); const rPP=rScaleR(Math.abs(pp.total));
+      const color=colorScale(Math.abs(m.total)); const grew=m.total>pp.total;
+      allRingNodes.push({m,pp,x,y,r,rPP,color,grew});
+      const spokeR=38;
+      tG.append('line').attr('x1',cx+spokeR*Math.cos(angle)).attr('y1',cy+spokeR*Math.sin(angle))
+        .attr('x2',x).attr('y2',y).attr('stroke','#1e3a5f').attr('stroke-width',.8).attr('opacity',.55).attr('pointer-events','none');
+      tG.append('circle').attr('cx',x).attr('cy',y).attr('r',rPP)
+        .attr('fill','none').attr('stroke',grew?'#10b981':'#ef4444')
+        .attr('stroke-width',1.5).attr('stroke-dasharray','4 3').attr('opacity',.28).attr('pointer-events','none');
+      const circ=tG.append('circle').attr('id','rc-'+m.id).attr('cx',x).attr('cy',y).attr('r',r)
+        .attr('fill',color+'2a').attr('stroke',color).attr('stroke-width',1.5).style('cursor','pointer');
+      if(r>=13) tG.append('text').attr('x',x).attr('y',y+1).attr('text-anchor','middle').attr('dominant-baseline','middle')
+        .attr('font-size',Math.min(r*.32,9)+'px').attr('font-weight','700').attr('fill','#e2e8f0')
+        .attr('pointer-events','none').text(m.id.replace('MVNO_','M'));
+      circ.on('click',(e)=>{e.stopPropagation();onMVNOClick(m);})
+        .on('mouseenter',(e)=>{if(m.id!==selMVNO) circ.attr('stroke','#fbbf24').attr('stroke-width',2.5).attr('fill',color+'50');showMVNOTip(e,m);})
+        .on('mouseleave',()=>{if(m.id!==selMVNO) circ.attr('stroke',color).attr('stroke-width',1.5).attr('fill',color+'2a');hideTip();});
+    });
+  });
+  _selHighlight=(id)=>{
+    allRingNodes.forEach(({m,color})=>{
+      d3.select('#rc-'+m.id).attr('stroke',m.id===id?'#fbbf24':color)
+        .attr('stroke-width',m.id===id?3:1.5).attr('fill',m.id===id?color+'55':color+'2a');
+    });
+  };
+}
+
+function openMVNOAllSlide(){
+  const grandAmts={};
+  SETT_CATS.forEach(cat=>{ grandAmts[cat.id]=0; });
+  let grandTotal=0, grandNeg=0, grandSubs=0;
+  MVNO_DATA.forEach(m=>{
+    SETT_CATS.forEach(cat=>{ grandAmts[cat.id]+=(m.cats[cat.id]||0); });
+    grandTotal+=m.total;
+    grandNeg+=Object.values(m.cats).filter(v=>v<0).reduce((a,b)=>a+b,0);
+    grandSubs+=m.subCount;
+  });
+  let ppTotal=0;
+  MVNO_DATA_PP.forEach(m=>{ ppTotal+=m.total; });
+  const ppDiff=grandTotal-ppTotal;
+  const ppPct=Math.round((ppDiff/Math.abs(ppTotal))*100);
+  let h=`<div class="mvno-grand">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span style="font-size:26px">📡</span>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:var(--txt)">MNO 전체 정산 현황</div>
+        <div style="font-size:12px;color:var(--acc);font-weight:600">전체 MVNO ${MVNO_DATA.length}개 사업자 합산</div>
+        <div style="font-size:10px;color:var(--txt4);margin-top:2px">${PREV_BILLING.year}년 ${PREV_BILLING.month}월 정산 (${PREV_BILLING.totalDays}일)</div>
+      </div>
+    </div>
+    <div class="mvno-stat-grid">
+      <div class="mvno-stat"><div class="mvno-stat-val">${MVNO_DATA.length}개</div><div class="mvno-stat-lbl">MVNO 사업자</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val">${grandSubs.toLocaleString()}명</div><div class="mvno-stat-lbl">총 가입자</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val" style="color:var(--grn)">${fmtN(grandNeg)}</div><div class="mvno-stat-lbl">공제·인센티브</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val">${fmtN(grandTotal)}</div><div class="mvno-stat-lbl">순 정산 합계</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:8px;border-top:1px solid var(--bdr2);margin-top:6px">
+      <div style="font-size:10px"><div style="color:var(--txt4);margin-bottom:2px">MVNO당 평균</div>
+        <div style="font-weight:700;color:var(--txt)">${fmtN(Math.round(grandTotal/MVNO_DATA.length))}</div></div>
+      <div style="font-size:10px;border-left:1px solid var(--bdr2);padding-left:8px">
+        <div style="color:var(--txt4);margin-bottom:2px">전전달(${PREV_PREV_BILLING.month}월) 대비</div>
+        <div style="color:${ppDiff>=0?'var(--grn)':'var(--red)'};font-weight:700">${ppDiff>=0?'▲':'▼'} ${Math.abs(ppPct)}%</div>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:10px;color:var(--txt4);font-weight:700;margin:10px 0 6px">📊 카테고리별 합산 정산</div>`;
+  SETT_CATS.forEach(cat=>{
+    const amt=grandAmts[cat.id]||0;
+    h+=`<div class="det-row"><span style="display:flex;align-items:center;gap:6px">
+      <span style="width:8px;height:8px;border-radius:50%;background:${cat.color};flex-shrink:0;display:inline-block"></span>
+      <span class="det-lbl">${cat.name}</span></span>
+      <span class="det-val${amt<0?' neg-amt':''}">${fmt(amt)}</span></div>`;
+  });
+  h+=`<div class="det-tot" style="margin-top:10px">
+    <span class="det-tot-lbl">전체 MVNO 총 정산</span>
+    <span class="det-tot-val">${fmtN(grandTotal)}</span></div>
+  <div style="font-size:10px;color:var(--txt4);text-align:center;margin-top:12px;padding-top:8px;border-top:1px solid var(--bdr2)">노드를 클릭하면 개별 MVNO 상세 정보가 표시됩니다</div>`;
+  document.getElementById('slide-title').textContent='MNO 전체 현황';
+  document.getElementById('slide-color-bar').style.background='#7c3aed';
+  document.getElementById('slide-title').style.color='#c084fc';
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  let det=document.getElementById('sl-mvno-det');
+  if(!det){det=document.createElement('div');det.id='sl-mvno-det';det.className='sl-content';document.getElementById('slide-body').appendChild(det);}
+  det.innerHTML=h; det.style.display='';
+  document.getElementById('slide').classList.add('open');
+}
+
+function onMVNOClick(mvno){
+  selMVNO=mvno.id;
+  if(_selHighlight) _selHighlight(mvno.id);
+  openMVNOSlide(mvno);
+}
+
+function openMVNOSlide(mvno){
+  document.getElementById('slide-title').textContent=`${mvno.id}`;
+  document.getElementById('slide-color-bar').style.background='#3b82f6';
+  document.getElementById('slide-title').style.color=getComputedStyle(document.documentElement).getPropertyValue('--acc').trim();
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  let det=document.getElementById('sl-mvno-det');
+  if(!det){det=document.createElement('div');det.id='sl-mvno-det';det.className='sl-content';document.getElementById('slide-body').appendChild(det);}
+  det.innerHTML=buildMVNODetailHTML(mvno); det.style.display='';
+  document.getElementById('slide').classList.add('open');
+}
+
+function buildMVNODetailHTML(mvno){
+  const negTotal=Object.values(mvno.cats).filter(v=>v<0).reduce((a,b)=>a+b,0);
+  const avgTotal=Math.round(MVNO_DATA.reduce((a,m)=>a+m.total,0)/MVNO_DATA.length);
+  const diff=mvno.total-avgTotal;
+  const ppIdx=MVNO_DATA.findIndex(m=>m.id===mvno.id);
+  const pp=ppIdx>=0?MVNO_DATA_PP[ppIdx]:null;
+  const ppDiff=pp?mvno.total-pp.total:0;
+  const ppPct=pp?Math.round((ppDiff/Math.abs(pp.total))*100):0;
+  let h=`<div class="mvno-grand">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span style="font-size:26px">🏢</span>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:var(--txt)">${mvno.id}</div>
+        <div style="font-size:12px;color:var(--acc);font-weight:600">${mvno.name}</div>
+        <div style="font-size:10px;color:var(--txt4);margin-top:2px">${PREV_BILLING.year}년 ${PREV_BILLING.month}월 정산 (${PREV_BILLING.totalDays}일)</div>
+      </div>
+    </div>
+    <div class="mvno-stat-grid">
+      <div class="mvno-stat"><div class="mvno-stat-val">${mvno.subCount.toLocaleString()}명</div><div class="mvno-stat-lbl">총 가입자</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val">${mvno.prodCount}종</div><div class="mvno-stat-lbl">운용 요금제</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val" style="color:var(--grn)">${fmtN(negTotal)}</div><div class="mvno-stat-lbl">공제·인센티브</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val">${fmtN(mvno.total)}</div><div class="mvno-stat-lbl">순 정산 합계</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-top:8px;border-top:1px solid var(--bdr2);margin-top:6px">
+      <div style="font-size:10px"><div style="color:var(--txt4);margin-bottom:2px">전체 평균 대비</div>
+        <div style="color:${diff>=0?'var(--grn)':'var(--red)'};font-weight:700">${diff>=0?'+':''}${fmtN(diff)}</div></div>
+      ${pp?`<div style="font-size:10px;border-left:1px solid var(--bdr2);padding-left:8px">
+        <div style="color:var(--txt4);margin-bottom:2px">전전달(${PREV_PREV_BILLING.month}월) 대비</div>
+        <div style="color:${ppDiff>=0?'var(--grn)':'var(--red)'};font-weight:700">${ppDiff>=0?'▲':'▼'} ${Math.abs(ppPct)}%</div>
+      </div>`:''}
+    </div>
+  </div>
+  <div style="font-size:10px;color:var(--txt4);font-weight:700;margin:10px 0 6px">📊 카테고리별 정산</div>`;
+  SETT_CATS.forEach(cat=>{
+    const amt=mvno.cats[cat.id]||0;
+    h+=`<div class="det-row"><span style="display:flex;align-items:center;gap:6px">
+      <span style="width:8px;height:8px;border-radius:50%;background:${cat.color};flex-shrink:0;display:inline-block"></span>
+      <span class="det-lbl">${cat.name}</span></span>
+      <span class="det-val${amt<0?' neg-amt':''}">${fmt(amt)}</span></div>`;
+  });
+  h+=`<div class="det-tot" style="margin-top:10px">
+    <span class="det-tot-lbl">${mvno.id} 총 정산</span>
+    <span class="det-tot-val">${fmtN(mvno.total)}</span></div>`;
+  return h;
+}
+
+function showMVNOTip(e,mvno){
+  const ppIdx=MVNO_DATA.findIndex(m=>m.id===mvno.id);
+  const pp=ppIdx>=0?MVNO_DATA_PP[ppIdx]:null;
+  const diff=pp?mvno.total-pp.total:0;
+  const pct=pp?Math.round((diff/Math.abs(pp.total))*100):0;
+  tip.innerHTML=`<div style="font-weight:700;color:var(--acc)">${mvno.id}</div>
+    <div style="font-size:11px;color:#9ca3af">${mvno.name}</div>
+    <div style="color:var(--gold);margin-top:4px;font-weight:700">${fmtN(mvno.total)}</div>
+    ${pp?`<div style="font-size:10px;color:#6b7280;margin-top:2px">${PREV_PREV_BILLING.month}월 대비 <span style="color:${diff>=0?'#10b981':'#ef4444'};font-weight:700">${diff>=0?'▲':'▼'} ${Math.abs(pct)}%</span></div>`:''}
+    <div style="color:#6b7280;font-size:10px;margin-top:3px;border-top:1px solid #1e3a5f;padding-top:3px">가입자 ${mvno.subCount.toLocaleString()}명 · 요금제 ${mvno.prodCount}종</div>`;
+  tip.style.display='block';
+}
+
+(()=>{
+  const handle=document.getElementById('slide-drag');
+  const slide=document.getElementById('slide');
+  let dragging=false,startX=0,startW=0;
+  handle.addEventListener('mousedown',e=>{
+    dragging=true; startX=e.clientX; startW=slide.offsetWidth;
+    handle.classList.add('dragging');
+    document.body.style.userSelect='none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove',e=>{
+    if(!dragging) return;
+    const dx=startX-e.clientX;
+    const newW=Math.max(300,Math.min(Math.round(window.innerWidth*.65),startW+dx));
+    slide.style.width=newW+'px';
+  });
+  document.addEventListener('mouseup',()=>{
+    if(!dragging) return;
+    dragging=false;
+    handle.classList.remove('dragging');
+    document.body.style.userSelect='';
+    if(currentView==='mvno') renderMVNOTree();
+  });
+})();
+</script>
+</body>
+</html>
