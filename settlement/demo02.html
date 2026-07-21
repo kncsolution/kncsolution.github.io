@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/><title>MVNO 통합 v8 — 레이아웃 개선</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow@11/dist/style.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reactflow@11/dist/umd/index.js"></script>
+<style>
+:root{
+  --bg:#0a0f1e;--bg2:#0d1117;--bg3:#111827;--bg4:#1a2332;--bg5:#1f2d40;--bg6:#2d3748;
+  --bg-sel:#1d3461;--bg2a:#0d1117cc;
+  --txt:#e6edf3;--txt2:#c9d1d9;--txt3:#8b949e;--txt4:#6b7280;
+  --acc:#60a5fa;--acc2:#93c5fd;--gold:#fbbf24;--grn:#3fb950;--red:#f85149;
+  --bdr:#1a2332;--bdr2:#1f2d40;--shd:rgba(0,0,0,.5);
+  --wi-rst:#374151;
+  --g-bg:#0a0f1e;--g-nl:rgba(255,255,255,.9);--g-ns:rgba(255,255,255,.45);
+  --g-ll:#4b5563;--g-lsub:#2d3748;--g-lobj:#1e3a5f;
+  --g-cnt-bg:#111827cc;--g-cnt-bdr:#1f2d40;--g-cnt-txt:#6b7280;
+}
+body.light{
+  --bg:#f0f4f8;--bg2:#ffffff;--bg3:#ffffff;--bg4:#f8fafc;--bg5:#f1f5f9;--bg6:#e2e8f0;
+  --bg-sel:#dbeafe;--bg2a:#ffffffcc;
+  --txt:#1e293b;--txt2:#374151;--txt3:#64748b;--txt4:#94a3b8;
+  --acc:#2563eb;--acc2:#3b82f6;--gold:#d97706;--grn:#16a34a;--red:#dc2626;
+  --bdr:#e2e8f0;--bdr2:#e2e8f0;--shd:rgba(0,0,0,.12);
+  --wi-rst:#e2e8f0;
+  --g-bg:#e8eef6;--g-nl:rgba(15,23,42,.88);--g-ns:rgba(15,23,42,.5);
+  --g-ll:#64748b;--g-lsub:#94a3b8;--g-lobj:#3b82f6;
+  --g-cnt-bg:#ffffffcc;--g-cnt-bdr:#cbd5e1;--g-cnt-txt:#475569;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI','Malgun Gothic',sans-serif;background:var(--bg);color:var(--txt);height:100vh;overflow:hidden;display:flex;flex-direction:column;transition:background .25s,color .25s}
+#hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:var(--bg2a);backdrop-filter:blur(8px);border-bottom:1px solid var(--bdr);flex-shrink:0;z-index:30;position:relative}
+#hdr h1{font-size:15px;font-weight:700;color:var(--acc)}
+#hdr .sub{font-size:10px;color:var(--txt3);margin-top:2px}
+#hdr-btns{display:flex;gap:6px;align-items:center}
+.hb{padding:5px 12px;border:1px solid var(--bdr2);background:var(--bg4);color:var(--txt3);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s}
+.hb:hover,.hb.active{background:#1d4ed8;border-color:#1d4ed8;color:white}
+#btn-theme{padding:4px 9px;border:1px solid var(--bdr2);background:var(--bg4);border-radius:6px;cursor:pointer;font-size:15px;line-height:1.4;transition:all .15s;color:var(--txt)}
+#btn-theme:hover{background:var(--bg5)}
+#graph-area{flex:1;position:relative;overflow:hidden;background:var(--g-bg);transition:background .25s}
+#rf-root{width:100%;height:100%;position:absolute;top:0;left:0;display:block}
+.react-flow__background{background:var(--g-bg)!important}
+.react-flow__edges{z-index:0!important}
+.react-flow__nodes{z-index:5!important}
+.react-flow__controls{background:var(--bg3)!important;border:1px solid var(--bdr2)!important;border-radius:8px!important}
+.react-flow__controls button{background:var(--bg4)!important;border-color:var(--bdr2)!important;color:var(--txt)!important}
+.react-flow__controls button:hover{background:var(--bg5)!important}
+.react-flow__minimap{background:var(--bg2)!important;border:1px solid var(--bdr2)!important}
+.rf-ont-node{border-radius:9px;padding:5px 12px;min-width:90px;text-align:center;cursor:pointer;transition:all .15s;font-family:'Segoe UI','Malgun Gothic',sans-serif}
+.rf-ont-node:hover{filter:brightness(1.15)}
+.rf-ont-node .rn-label{font-size:10.5px;font-weight:700;pointer-events:none}
+.rf-ont-node .rn-sub{font-size:8.5px;color:#6b7280;margin-top:1px;pointer-events:none}
+.rf-ont-node .rn-abs{font-size:8px;color:#fbbf24;margin-top:1px;pointer-events:none}
+.rf-ont-node .rn-mcode{font-size:8px;color:#f87171;margin-top:1px;pointer-events:none}
+.rf-ont-node .rn-expand{font-size:8px;color:#6b7280;margin-top:3px;border-top:1px solid #1f2d4088;padding-top:2px;pointer-events:none}
+.rf-ont-node .rn-expand.open{color:#3fb950}
+.rf-scode-node{border-radius:0 7px 7px 0;padding:5px 10px;min-width:96px;text-align:left;cursor:default;font-family:'Segoe UI','Malgun Gothic',sans-serif;border-left:3px solid #ef4444}
+.rsc-code{font-size:10px;font-weight:700;color:#f87171;pointer-events:none}
+.rsc-name{font-size:8.5px;color:#9ca3af;margin-top:1px;pointer-events:none}
+.rsc-src{font-size:8px;color:#4b5563;margin-top:2px;pointer-events:none}
+#tree-svg{width:100%;height:100%;display:none;position:absolute;top:0;left:0}
+#ont-tree-svg{width:100%;height:100%;display:none;position:absolute;top:0;left:0}
+.otlink-sub{fill:none;stroke:var(--g-lsub);stroke-width:1.4;opacity:.75}
+.otlink-obj{fill:none;stroke:#fbbf24;stroke-width:1;stroke-dasharray:5 3;opacity:.45}
+.tlink{fill:none;stroke:var(--g-lsub);stroke-width:1.5;opacity:.7}
+.tnode-rect{stroke-width:1.5;transition:stroke .2s,fill .2s}
+.tnode-mno{fill:#7c3aed22;stroke:#7c3aed}
+.tnode-mvno{fill:var(--bg4);stroke:var(--acc)}
+.tnode-lbl{font-size:10px;fill:var(--g-nl);font-weight:700;pointer-events:none}
+.tnode-lbl-mno{font-size:13px;fill:#c084fc;font-weight:800}
+.tnode-amt{font-size:9px;fill:#fbbf24;pointer-events:none}
+.tnode-sub{font-size:8px;fill:var(--g-ns);pointer-events:none}
+#hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;transition:opacity .5s;z-index:5}
+#hint h2{font-size:22px;font-weight:800;color:var(--acc);margin-bottom:8px}
+#hint p{font-size:13px;color:var(--txt4)}
+#slide{position:absolute;top:0;right:0;width:460px;min-width:300px;max-width:800px;height:100%;background:var(--bg3);border-left:1px solid var(--bdr2);transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:20;display:flex;flex-direction:column;overflow:hidden}
+#slide.open{transform:translateX(0)}
+#slide-resize{position:absolute;top:0;left:0;width:5px;height:100%;cursor:ew-resize;z-index:30;background:transparent;transition:background .15s}
+#slide-resize:hover,#slide-resize.dragging{background:#60a5fa44}
+.trace-step{display:flex;gap:10px;padding:10px 8px;position:relative;border-left:3px solid transparent;border-radius:4px;transition:background .15s,border-color .15s;margin:0 -8px}
+.trace-step:hover{background:#1a2332aa}
+.trace-step:not(:last-child)::after{content:'';position:absolute;left:15px;top:32px;width:2px;bottom:-4px;background:linear-gradient(#60a5fa44,#60a5fa22)}
+.trace-dot{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;border:2px solid transparent}
+.trace-body{flex:1;min-width:0}
+.trace-node{font-size:10px;font-weight:700;margin-bottom:2px}
+.trace-vals{background:var(--bg2);border-radius:6px;padding:6px 8px;font-size:10px}
+.trace-val-row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--bdr2)}
+.trace-val-row:last-child{border-bottom:none}
+.trace-result{background:#fbbf2422;border:1px solid #fbbf2444;border-radius:8px;padding:10px;text-align:center;margin-top:6px}
+#slide-tabs-mc{display:none;background:var(--bg2);border-bottom:1px solid var(--bdr2);padding:0 2px;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
+#slide-tabs-mc::-webkit-scrollbar{display:none}
+#slide-hdr{padding:14px 16px;background:var(--bg2);border-bottom:1px solid var(--bdr2);display:flex;align-items:center;gap:10px;flex-shrink:0}
+#slide-title{font-weight:700;font-size:14px;flex:1}
+#slide-close{width:28px;height:28px;background:var(--bg5);border:none;color:var(--txt3);border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+#slide-close:hover{background:var(--bg6);color:var(--txt)}
+#slide-tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--bdr2);padding:0 4px;flex-shrink:0;overflow-x:hidden}
+#slide-tabs-mc{display:none;background:var(--bg2);border-bottom:1px solid var(--bdr2);padding:0 4px;flex-shrink:0}
+.sl-tab{padding:9px 8px;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--txt4);white-space:nowrap;flex:1;text-align:center}
+.sl-tab.active{border-bottom-color:var(--acc);color:var(--txt)}
+#slide-body{flex:1;overflow-y:auto;padding:14px;background:var(--bg3)}
+.cls-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;margin-bottom:4px}
+.cls-sub-lbl{font-size:11px;color:var(--txt4);margin-top:2px}
+.prop-chip{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;margin:2px;background:var(--bg5);color:var(--acc2);font-family:monospace}
+.rel-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bdr2);font-size:11px}
+.rel-arrow{color:var(--txt4);flex-shrink:0}
+.rel-lbl{color:var(--acc);font-weight:600;flex:1}
+.rel-target{color:var(--txt2)}
+.sub-item{border-radius:8px;padding:10px;margin-bottom:7px;cursor:pointer;border:1.5px solid var(--bdr2);background:var(--bg4);transition:all .2s}
+.sub-item:hover{border-color:var(--bg6);background:var(--bg5)}
+.sub-item.active{border-color:var(--acc);background:var(--bg-sel)}
+.si-name{font-weight:700;font-size:12px;margin-bottom:4px;color:var(--txt)}
+.si-meta{font-size:10px;color:var(--txt4);display:flex;gap:8px;flex-wrap:wrap}
+.si-amt{font-size:15px;font-weight:800;color:var(--gold);margin-top:4px}
+.det-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bdr2);font-size:12px}
+.det-row:last-child{border-bottom:none}
+.det-lbl{color:var(--txt4)}
+.det-val{font-weight:700;color:var(--txt)}
+#btn-sample{padding:5px 12px;border:1px solid #f59e0b66;background:#451a0322;color:#f59e0b;border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s}
+#btn-sample:hover,#btn-sample.active{background:#92400e;border-color:#f59e0b;color:#fde68a}
+.inst-step{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr2);align-items:flex-start}
+.inst-step:last-child{border-bottom:none}
+.inst-node-badge{min-width:110px;padding:4px 8px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.03em;text-align:center}
+.inst-vals{flex:1}
+.inst-val-row{font-size:11px;color:var(--txt2);margin-bottom:2px}
+.inst-val-key{color:var(--txt4);font-size:10px}
+.inst-calc-box{margin-top:14px;padding:14px;background:var(--bg4);border-radius:10px;border:1.5px solid #fbbf2466}
+.inst-calc-title{font-size:10px;font-weight:700;color:#fbbf24;margin-bottom:8px;letter-spacing:.04em}
+.inst-calc-eq{font-size:20px;font-weight:900;color:#fde68a;text-align:center;margin:8px 0}
+.inst-calc-detail{font-size:11px;color:var(--txt3);text-align:center}
+.det-tot{background:var(--bg-sel);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+.det-tot-lbl{font-size:11px;color:var(--acc2)}
+.det-tot-val{font-size:18px;font-weight:800;color:var(--gold)}
+.wi-lbl{font-size:10px;color:var(--txt4);font-weight:600;margin-bottom:4px}
+.wi-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.wi-slider{flex:1;accent-color:var(--acc)}
+.wi-val{width:40px;text-align:right;font-size:11px;font-weight:700;color:var(--acc)}
+.wi-input{width:100%;padding:7px 9px;background:var(--bg5);border:1px solid var(--bg6);border-radius:6px;color:var(--txt);font-size:12px}
+.wi-btn{width:100%;padding:9px;background:#7c3aed;border:none;border-radius:7px;color:white;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px}
+.wi-btn-reset{background:var(--wi-rst);color:var(--txt);margin-top:4px;border:1px solid var(--bdr2)}
+.cmp-table{width:100%;border-collapse:collapse;font-size:11px}
+.cmp-table th{background:var(--bg5);padding:6px;text-align:left;color:var(--txt4);font-weight:600;border-bottom:1px solid var(--bg6)}
+.cmp-table td{padding:6px;border-bottom:1px solid var(--bdr2);color:var(--txt)}
+.dp{color:var(--grn);font-weight:700}
+.dn{color:var(--red);font-weight:700}
+.bdg{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600}
+.bo{background:#d9730033;color:#e3b341}
+.bb{background:#1f6feb33;color:#60a5fa}
+.br{background:#f851491a;color:#f85149}
+#gtip{position:absolute;background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;padding:9px 11px;pointer-events:none;font-size:11px;max-width:200px;display:none;z-index:50;line-height:1.7;box-shadow:0 8px 24px var(--shd);color:var(--txt)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+#counter{position:absolute;bottom:14px;left:14px;background:var(--g-cnt-bg);backdrop-filter:blur(4px);border:1px solid var(--g-cnt-bdr);border-radius:8px;padding:7px 12px;font-size:11px;color:var(--g-cnt-txt);transition:background .25s,border-color .25s;z-index:10}
+#counter span{color:var(--acc);font-weight:700}
+#path-btn{position:absolute;bottom:14px;left:140px;background:#7c3aed;border:none;border-radius:8px;padding:7px 14px;color:white;font-size:11px;font-weight:700;cursor:pointer;display:none;z-index:10}
+#path-btn:hover{background:#6d28d9}
+.cat-hdr{padding:5px 8px;margin:10px 0 3px;border-radius:0 4px 4px 0;display:flex;justify-content:space-between;align-items:center}
+.cat-hdr-lbl{font-size:10px;font-weight:700}
+.cat-hdr-amt{font-size:10px;color:var(--txt4)}
+.det-row-zero{opacity:.35}
+.neg-amt{color:var(--grn)!important}
+.srch-bar{display:flex;gap:5px;margin-bottom:10px;align-items:center}
+.srch-input{flex:1;padding:6px 9px;background:var(--bg5);border:1px solid var(--bg6);border-radius:6px;color:var(--txt);font-size:11px;outline:none}
+.srch-input:focus{border-color:var(--acc)}
+.srch-select{padding:6px 6px;background:var(--bg5);border:1px solid var(--bg6);border-radius:6px;color:var(--txt);font-size:10px;outline:none;cursor:pointer}
+.srch-chip{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--bdr2);background:var(--bg5);color:var(--txt4);white-space:nowrap}
+.srch-chip.on{background:#1d4ed8;border-color:#1d4ed8;color:white}
+.mvno-card{background:var(--bg4);border:1px solid var(--bdr2);border-radius:10px;padding:12px;margin-bottom:10px}
+.mvno-sum-row{display:flex;justify-content:space-between;font-size:11px;padding:3px 0;border-bottom:1px solid var(--bdr2)}
+.mvno-sum-row:last-child{border-bottom:none}
+.mvno-sum-lbl{color:var(--txt4);font-size:10px}
+.mvno-sum-val{font-weight:700;color:var(--txt)}
+.mvno-grand{background:linear-gradient(135deg,var(--bg-sel),var(--bg4));border:1px solid var(--acc);border-radius:10px;padding:12px;margin-bottom:10px}
+.mvno-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.mvno-stat{background:var(--bg4);border:1px solid var(--bdr2);border-radius:8px;padding:8px 10px;text-align:center}
+.mvno-stat-val{font-size:14px;font-weight:800;color:var(--gold)}
+.mvno-stat-lbl{font-size:9px;color:var(--txt4);margin-top:2px}
+.prod-section{margin-bottom:12px}
+.prod-hdr{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--bg5);border-radius:7px;cursor:pointer;margin-bottom:4px;border:1px solid var(--bdr2)}
+.prod-hdr:hover{background:var(--bg6)}
+.prod-hdr-name{font-size:11px;font-weight:700;color:var(--txt)}
+.prod-hdr-meta{font-size:10px;color:var(--txt4)}
+.prod-hdr-amt{font-size:12px;font-weight:800;color:var(--gold)}
+.prod-body{display:none;padding:0 4px}
+.prod-body.open{display:block}
+.vb{padding:5px 11px;border:1px solid var(--bdr2);background:var(--bg4);color:var(--txt3);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s}
+.vb.active{background:#7c3aed;border-color:#7c3aed;color:white}
+#slide-drag{position:absolute;left:0;top:0;bottom:0;width:5px;cursor:col-resize;z-index:30;background:transparent;transition:background .15s}
+#slide-drag:hover,#slide-drag.dragging{background:var(--acc);opacity:.55}
+#tree-counter{position:absolute;bottom:14px;left:14px;background:var(--g-cnt-bg);backdrop-filter:blur(4px);border:1px solid var(--g-cnt-bdr);border-radius:8px;padding:7px 12px;font-size:11px;color:var(--g-cnt-txt);display:none;z-index:10}
+#tree-counter span{color:var(--acc);font-weight:700}
+#mvno-style-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:none;align-items:center;gap:4px;background:var(--g-cnt-bg);backdrop-filter:blur(8px);border:1px solid var(--g-cnt-bdr);border-radius:20px;padding:4px 8px;z-index:15}
+.sb{padding:4px 13px;border:none;background:transparent;color:var(--g-cnt-txt);border-radius:14px;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;white-space:nowrap}
+.sb:hover{background:var(--bg5)}
+.sb.active{background:var(--acc);color:white}
+.sb-sep{width:1px;height:16px;background:var(--g-cnt-bdr);display:inline-block;margin:0 2px}
+.sb-legend{font-size:10px;color:var(--g-cnt-txt);padding-left:8px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.ghost-dot{width:12px;height:12px;border-radius:50%;border:1.5px dashed #94a3b8;display:inline-block;flex-shrink:0}
+.mc-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+.mc-tbl th{background:var(--bg4);padding:6px 8px;text-align:left;color:var(--txt4);font-weight:600;border-bottom:1px solid var(--bg6);white-space:nowrap;font-size:10px}
+.mc-tbl td{padding:6px 8px;border-bottom:1px solid var(--bdr2);color:var(--txt);font-size:11px}
+.mc-tbl tr:hover td{background:var(--bg5)}
+.mc-tbl td.num{text-align:right;font-weight:700}
+.mc-tbl tr.tot-row td{background:var(--bg-sel);font-weight:800;color:var(--gold)}
+.mc-inst-item{border-radius:8px;padding:10px;margin-bottom:7px;cursor:pointer;border:1.5px solid var(--bdr2);background:var(--bg4);transition:all .2s}
+.mc-inst-item:hover{border-color:#ef444488;background:var(--bg5)}
+.mc-inst-item.active{border-color:#ef4444;background:#ef444411}
+.mc-calc-box{margin-top:10px;padding:12px;background:var(--bg5);border-radius:8px;border:1.5px solid #ef444455}
+.mc-plan-card{background:var(--bg4);border:1px solid var(--bdr2);border-radius:8px;padding:10px;margin-bottom:8px}
+.mc-section-hdr{font-size:10px;color:var(--txt4);font-weight:700;margin:10px 0 6px;padding-top:8px;border-top:1px solid var(--bdr2)}
+.mc-section-hdr:first-child{border-top:none;margin-top:0}
+#mvno-tip{position:absolute;background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;padding:9px 11px;pointer-events:none;font-size:11px;max-width:200px;display:none;z-index:50;line-height:1.7;box-shadow:0 8px 24px var(--shd);color:var(--txt)}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <div>
+    <h1>🔗 MVNO 정산 온톨로지 <span style="font-size:11px;opacity:.6;font-weight:400">v8 — 레이아웃 개선</span></h1>
+    <div class="sub">8단계 레이어 · M코드 더블클릭→소코드 확장 · 드래그 가능 · 클래스 클릭→슬라이드 패널</div>
+  </div>
+  <div id="hdr-btns">
+    <button id="btn-theme" onclick="toggleTheme()" title="다크/화이트 모드">🌙</button>
+    <button class="vb active" id="btn-view-ont" onclick="switchView('ontology')">🔗 온톨로지</button>
+    <button class="vb" id="btn-view-mvno" onclick="switchView('mvno')">🏢 MVNO 현황</button>
+    <button class="vb" id="btn-view-tree" onclick="switchView('tree')">🌳 트리</button>
+    <span style="width:1px;height:18px;background:var(--bdr2);display:inline-block;margin:0 2px;vertical-align:middle"></span>
+    <button id="btn-sample" onclick="showSampleInstance()" title="정산 추적 샘플">📋 나가입 샘플</button>
+    <span style="width:1px;height:18px;background:var(--bdr2);display:inline-block;margin:0 2px;vertical-align:middle" id="sep-filter"></span>
+    <button class="hb active" id="btn-all">전체</button>
+    <button class="hb" id="btn-cls">클래스만</button>
+    <button class="hb" id="btn-obj">관계만</button>
+    <button class="hb" id="btn-fit">⊡ Fit</button>
+    <button class="hb" id="btn-reset">초기화</button>
+    <button class="hb" id="btn-kor" onclick="if(window.__setShowKorean){window.__setShowKorean(v=>!v);this.classList.toggle('active')}">한글</button>
+  </div>
+</div>
+<div id="graph-area">
+  <div id="rf-root"></div>
+  <svg id="tree-svg"></svg>
+  <svg id="ont-tree-svg"></svg>
+  <div id="hint" style="display:none"></div>
+  <div id="counter">클래스 <span id="cnt-nodes">0</span>개 · 관계 <span id="cnt-links">0</span>개</div>
+  <div id="tree-counter">MNO <span>1</span>개 · MVNO <span>50</span>개 · 전월 정산 현황</div>
+  <div id="mvno-style-bar">
+    <button class="sb active" id="btn-style-bubble" onclick="switchMVNOStyle('bubble')">🫧 버블</button>
+    <button class="sb" id="btn-style-radial" onclick="switchMVNOStyle('radial')">🌐 방사형</button>
+    <span class="sb-sep"></span>
+    <span class="sb-legend"><span class="ghost-dot"></span> 전전달 규모</span>
+  </div>
+  <button id="path-btn" onclick="togglePathAnim()">✨ 정산 흐름 애니메이션</button>
+  <div id="gtip"></div>
+  <div id="mvno-tip"></div>
+</div>
+<div id="slide">
+  <div id="slide-resize"></div>
+  <div id="slide-hdr">
+    <div id="slide-color-bar" style="width:4px;height:28px;border-radius:2px;background:#60a5fa"></div>
+    <div id="slide-title">클래스 정보</div>
+    <button id="slide-close" onclick="closeSlide()">✕</button>
+  </div>
+  <div id="slide-tabs">
+    <div class="sl-tab active" data-stab="info">📐 클래스</div>
+    <div class="sl-tab" data-stab="mvno">🏢 MVNO</div>
+    <div class="sl-tab" data-stab="prod">📦 요금제</div>
+    <div class="sl-tab" data-stab="instances">👥 인스턴스</div>
+    <div class="sl-tab" data-stab="calc">🧮 정산</div>
+    <div class="sl-tab" data-stab="whatif">⚡ What-if</div>
+  </div>
+  <div id="slide-tabs-mc">
+    <div class="sl-tab" data-mctab="mc-info">📐 클래스</div>
+    <div class="sl-tab active" data-mctab="mc-mvno">🏢 MVNO</div>
+    <div class="sl-tab" data-mctab="mc-plan">📦 요금제</div>
+    <div class="sl-tab" data-mctab="mc-inst">👥 인스턴스</div>
+    <div class="sl-tab" data-mctab="mc-trace" id="tab-trace" style="display:none">📊 정산과정</div>
+  </div>
+  <div id="slide-body">
+    <div id="sl-info" class="sl-content"></div>
+    <div id="sl-mvno" class="sl-content" style="display:none"></div>
+    <div id="sl-prod" class="sl-content" style="display:none"></div>
+    <div id="sl-instances" class="sl-content" style="display:none"></div>
+    <div id="sl-calc" class="sl-content" style="display:none"></div>
+    <div id="sl-whatif" class="sl-content" style="display:none"></div>
+    <div id="sl-mc-info" class="sl-content" style="display:none"></div>
+    <div id="sl-mc-mvno" class="sl-content" style="display:none"></div>
+    <div id="sl-mc-plan" class="sl-content" style="display:none"></div>
+    <div id="sl-mc-inst" class="sl-content" style="display:none"></div>
+    <div id="sl-mc-trace" class="sl-content" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// §V8_S1 — 데이터
+// ══════════════════════════════════════════════════════
+const BILLING={year:2025,month:6,totalDays:30};
+const PRODUCTS=[
+  {id:'P001',name:'데이터무한100G',   type:'bundled',baseFee:10000,includedData:100,includedVoice:100,includedVideo:0,includedSMS:200},
+  {id:'P002',name:'데이터50G음성200분',type:'bundled',baseFee:7000, includedData:50, includedVoice:200,includedVideo:0,includedSMS:100},
+  {id:'P003',name:'음성전용300분',    type:'voice',  baseFee:5000, includedData:0,  includedVoice:300,includedVideo:0,includedSMS:100},
+];
+const SETT_CATS=[
+  {id:'basic',    name:'기본료/단가',  color:'#3b82f6'},
+  {id:'fee',      name:'수수료',       color:'#10b981'},
+  {id:'prepaid',  name:'선불',         color:'#f59e0b'},
+  {id:'excess',   name:'초과종량',     color:'#ef4444'},
+  {id:'volume',   name:'총량',         color:'#8b5cf6'},
+  {id:'subscrvol',name:'가입자총량',   color:'#06b6d4'},
+  {id:'rs',       name:'RS/특수',      color:'#ec4899'},
+];
+const SETT_DEFS=[
+  {id:'i01',cat:'basic',    name:'기본료도매수수료(일반)',   unit:'일할계산'},
+  {id:'i02',cat:'basic',    name:'가입자당단가(정액선불)',   unit:'원/가입자'},
+  {id:'i03',cat:'basic',    name:'가입자당단가(eSIM)',       unit:'원/가입자'},
+  {id:'i04',cat:'basic',    name:'기간이전단가',            unit:'원'},
+  {id:'i05',cat:'basic',    name:'기간이후단가',            unit:'원'},
+  {id:'i06',cat:'fee',      name:'과금대행수수료',          unit:'원/건'},
+  {id:'i07',cat:'fee',      name:'청구대행수수료',          unit:'원/건'},
+  {id:'i08',cat:'fee',      name:'영업전산수수료',          unit:'원/건'},
+  {id:'i09',cat:'fee',      name:'수납대행수수료',          unit:'원/건'},
+  {id:'i10',cat:'prepaid',  name:'선불 음성 국제이용료',    unit:'원/분'},
+  {id:'i11',cat:'prepaid',  name:'선불 SMS 국제이용료',     unit:'원/건'},
+  {id:'i12',cat:'prepaid',  name:'선불 정보이용료',         unit:'원'},
+  {id:'i13',cat:'prepaid',  name:'선불 부가서비스',         unit:'원'},
+  {id:'i14',cat:'prepaid',  name:'부가서비스 인센티브',     unit:'원'},
+  {id:'i15',cat:'prepaid',  name:'선불 충전',               unit:'원'},
+  {id:'i16',cat:'excess',   name:'초과 음성',               unit:'원/분'},
+  {id:'i17',cat:'excess',   name:'초과 영상',               unit:'원/분'},
+  {id:'i18',cat:'excess',   name:'초과 SMS·MMS',            unit:'원/건'},
+  {id:'i19',cat:'excess',   name:'초과 데이터',             unit:'원/MB'},
+  {id:'i20',cat:'volume',   name:'음성 총량',               unit:'원/분'},
+  {id:'i21',cat:'volume',   name:'영상 총량',               unit:'원/분'},
+  {id:'i22',cat:'volume',   name:'SMS 총량',                unit:'원/건'},
+  {id:'i23',cat:'volume',   name:'MMS 텍스트 총량',         unit:'원/건'},
+  {id:'i24',cat:'volume',   name:'MMS 사진·영상 총량',      unit:'원/건'},
+  {id:'i25',cat:'volume',   name:'데이터 총량',             unit:'원/GB'},
+  {id:'i26',cat:'volume',   name:'미니멈 총량',             unit:'원'},
+  {id:'i27',cat:'volume',   name:'착신수수료',              unit:'원/분'},
+  {id:'i28',cat:'subscrvol',name:'가입자 음성 총량',        unit:'원/분'},
+  {id:'i29',cat:'subscrvol',name:'가입자 SMS 총량',         unit:'원/건'},
+  {id:'i30',cat:'subscrvol',name:'가입자 데이터 총량',      unit:'원/GB'},
+  {id:'i31',cat:'rs',       name:'청구 기준 RS',            unit:'%'},
+  {id:'i32',cat:'rs',       name:'수납 기준 RS',            unit:'%'},
+  {id:'i33',cat:'rs',       name:'RS 차감',                 unit:'%'},
+  {id:'i34',cat:'rs',       name:'후불 부가서비스 인센티브',unit:'원'},
+  {id:'i35',cat:'rs',       name:'위약금',                  unit:'원'},
+  {id:'i36',cat:'rs',       name:'무제한 로밍',             unit:'원'},
+  {id:'i37',cat:'rs',       name:'GL 수납금액',             unit:'원'},
+  {id:'i38',cat:'rs',       name:'데이터 선구매',           unit:'원/GB'},
+  {id:'i39',cat:'rs',       name:'GR 할인',                 unit:'%'},
+];
+const RATES={
+  P001:{wholesaleRate:.50,subUnitPrepaid:500,subUnitESIM:400,prePeriodUnit:1000,postPeriodUnit:800,
+    billingChargeFee:50,billingAgencyFee:100,bizSystemFee:80,collectionFee:200,
+    intlVoiceRate:50,intlSMSRate:20,prepaidInfoFee:200,prepaidVAS:1000,vasIncentive:-500,prepaidChargeRate:.05,
+    excessVoiceRate:1.8,excessVideoRate:3.0,excessSMSRate:10,excessDataRate:.5,
+    voiceTotalRate:1.5,videoTotalRate:2.5,smsTotalRate:8,mmsTextRate:15,mmsMediaRate:25,dataTotalRate:500,minimumTotal:3000,
+    incomingFeeRate:.5,subVoiceTotalRate:1.2,subSMSTotalRate:6,subDataTotalRate:400,
+    rsBillingRate:.03,rsCollectionRate:.03,rsDeductRate:.01,postpaidVASIncentive:-500,
+    penalty:0,unlimitedRoamingFee:0,glCollection:0,dataPrepurchaseRate:450,grDiscountRate:.05},
+  P002:{wholesaleRate:.45,subUnitPrepaid:400,subUnitESIM:300,prePeriodUnit:900,postPeriodUnit:700,
+    billingChargeFee:50,billingAgencyFee:100,bizSystemFee:80,collectionFee:200,
+    intlVoiceRate:50,intlSMSRate:20,prepaidInfoFee:200,prepaidVAS:1000,vasIncentive:-400,prepaidChargeRate:.05,
+    excessVoiceRate:1.5,excessVideoRate:3.0,excessSMSRate:10,excessDataRate:.5,
+    voiceTotalRate:1.3,videoTotalRate:2.5,smsTotalRate:7,mmsTextRate:12,mmsMediaRate:20,dataTotalRate:450,minimumTotal:2500,
+    incomingFeeRate:.5,subVoiceTotalRate:1.0,subSMSTotalRate:5,subDataTotalRate:350,
+    rsBillingRate:.03,rsCollectionRate:.03,rsDeductRate:.01,postpaidVASIncentive:-400,
+    penalty:0,unlimitedRoamingFee:0,glCollection:0,dataPrepurchaseRate:400,grDiscountRate:.05},
+  P003:{wholesaleRate:.50,subUnitPrepaid:500,subUnitESIM:300,prePeriodUnit:800,postPeriodUnit:600,
+    billingChargeFee:50,billingAgencyFee:100,bizSystemFee:80,collectionFee:200,
+    intlVoiceRate:60,intlSMSRate:25,prepaidInfoFee:300,prepaidVAS:500,vasIncentive:-300,prepaidChargeRate:.05,
+    excessVoiceRate:2.0,excessVideoRate:0,excessSMSRate:15,excessDataRate:0,
+    voiceTotalRate:1.8,videoTotalRate:0,smsTotalRate:10,mmsTextRate:18,mmsMediaRate:0,dataTotalRate:0,minimumTotal:2000,
+    incomingFeeRate:.5,subVoiceTotalRate:1.5,subSMSTotalRate:8,subDataTotalRate:0,
+    rsBillingRate:.03,rsCollectionRate:.03,rsDeductRate:.01,postpaidVASIncentive:-300,
+    penalty:0,unlimitedRoamingFee:0,glCollection:0,dataPrepurchaseRate:0,grDiscountRate:.05},
+};
+const SUBSCRIBERS=[
+  {id:'S001',name:'홍길동 (John)',productId:'P001',joinDate:'2025-06-15',
+   isESIM:false,isPrepaid:false,hasRoaming:false,
+   usedVoice:80,usedVideo:10,usedSMS:45,usedMMSText:3,usedMMSMedia:2,
+   usedData:85,intlVoice:0,intlSMS:0,incomingVoice:120,dataPrepurchased:0,prepaidChargeAmt:0},
+  {id:'S002',name:'이영희 (Jane)',productId:'P002',joinDate:'2025-05-10',
+   isESIM:true,isPrepaid:false,hasRoaming:false,
+   usedVoice:250,usedVideo:30,usedSMS:120,usedMMSText:8,usedMMSMedia:5,
+   usedData:55,intlVoice:5,intlSMS:3,incomingVoice:200,dataPrepurchased:5,prepaidChargeAmt:0},
+  {id:'S003',name:'김철수 (Bob)',productId:'P003',joinDate:'2025-01-01',
+   isESIM:false,isPrepaid:true,hasRoaming:false,
+   usedVoice:380,usedVideo:0,usedSMS:200,usedMMSText:0,usedMMSMedia:0,
+   usedData:0,intlVoice:2,intlSMS:5,incomingVoice:300,dataPrepurchased:0,prepaidChargeAmt:10000},
+];
+function calcDays(join,p){
+  const j=new Date(join),ps=new Date(p.year,p.month-1,1),pe=new Date(p.year,p.month,0);
+  const s=j>ps?j:ps;
+  return Math.min(Math.max(0,Math.floor((pe-s)/86400000)+1),p.totalDays);
+}
+function calcAllItems(sub,prod,rate,period,ov={}){
+  const r={...rate,...ov};const ws=ov._sub?{...sub,...ov._sub}:sub;
+  const days=calcDays(ws.joinDate,period);
+  const joinedBefore=new Date(ws.joinDate)<=new Date(period.year,period.month-1,1);
+  const excV=Math.max(0,(ws.usedVoice||0)-(prod.includedVoice||0));
+  const excVid=Math.max(0,(ws.usedVideo||0)-(prod.includedVideo||0));
+  const excSMS=Math.max(0,((ws.usedSMS||0)+(ws.usedMMSText||0)+(ws.usedMMSMedia||0))-(prod.includedSMS||0));
+  const excData=Math.max(0,(ws.usedData||0)-(prod.includedData||0));
+  const i01=prod.baseFee*r.wholesaleRate*(days/period.totalDays);
+  const i02=ws.isPrepaid?r.subUnitPrepaid:0;const i03=ws.isESIM?r.subUnitESIM:0;
+  const i04=joinedBefore?r.prePeriodUnit:0;const i05=r.postPeriodUnit;
+  const i06=r.billingChargeFee;const i07=r.billingAgencyFee;
+  const i08=r.bizSystemFee;const i09=r.collectionFee;
+  const i10=(ws.intlVoice||0)*r.intlVoiceRate;const i11=(ws.intlSMS||0)*r.intlSMSRate;
+  const i12=ws.isPrepaid?r.prepaidInfoFee:0;const i13=ws.isPrepaid?r.prepaidVAS:0;
+  const i14=ws.isPrepaid?r.vasIncentive:0;const i15=ws.isPrepaid?(ws.prepaidChargeAmt||0)*r.prepaidChargeRate:0;
+  const i16=excV*r.excessVoiceRate;const i17=excVid*r.excessVideoRate;
+  const i18=excSMS*r.excessSMSRate;const i19=excData*1024*r.excessDataRate;
+  const i20=(ws.usedVoice||0)*r.voiceTotalRate;const i21=(ws.usedVideo||0)*r.videoTotalRate;
+  const i22=(ws.usedSMS||0)*r.smsTotalRate;const i23=(ws.usedMMSText||0)*r.mmsTextRate;
+  const i24=(ws.usedMMSMedia||0)*r.mmsMediaRate;const i25=(ws.usedData||0)*r.dataTotalRate;
+  const i26=r.minimumTotal;const i27=(ws.incomingVoice||0)*r.incomingFeeRate;
+  const i28=(ws.usedVoice||0)*r.subVoiceTotalRate;const i29=(ws.usedSMS||0)*r.subSMSTotalRate;
+  const i30=(ws.usedData||0)*r.subDataTotalRate;
+  const base30=[i01,i02,i03,i04,i05,i06,i07,i08,i09,i10,i11,i12,i13,i14,i15,
+    i16,i17,i18,i19,i20,i21,i22,i23,i24,i25,i26,i27,i28,i29,i30];
+  const rsBase=base30.reduce((a,b)=>a+(b>0?b:0),0);
+  const i31=rsBase*r.rsBillingRate;const i32=rsBase*r.rsCollectionRate;
+  const i33=-(rsBase*r.rsDeductRate);const i34=ws.isPrepaid?0:r.postpaidVASIncentive;
+  const i35=r.penalty;const i36=ws.hasRoaming?r.unlimitedRoamingFee:0;
+  const i37=r.glCollection;const i38=(ws.dataPrepurchased||0)*r.dataPrepurchaseRate;
+  const i39=-(rsBase*r.grDiscountRate);
+  const amounts=[i01,i02,i03,i04,i05,i06,i07,i08,i09,i10,i11,i12,i13,i14,i15,
+    i16,i17,i18,i19,i20,i21,i22,i23,i24,i25,i26,i27,i28,i29,i30,
+    i31,i32,i33,i34,i35,i36,i37,i38,i39];
+  return{days,amounts,total:amounts.reduce((a,b)=>a+b,0),excV,excVid,excSMS,excData,rsBase};
+}
+function fmt(n){if(n===0)return'—';const r=Math.round(Math.abs(n));return(n<0?'-':'')+r.toLocaleString('ko-KR')+'원';}
+function fmtN(n){return Math.round(n).toLocaleString('ko-KR')+'원';}
+const DOMAINS={
+  party:{label:'Party',color:'#3b82f6'},product:{label:'Product',color:'#10b981'},
+  rate:{label:'Rate',color:'#f59e0b'},billing:{label:'Billing',color:'#8b5cf6'},
+  usage:{label:'Usage',color:'#06b6d4'},settlement:{label:'Settlement',color:'#ef4444'},
+  settitem:{label:'SettlementItem',color:'#34d399'},
+  mcode:{label:'MCode',color:'#fb923c'},
+  scode:{label:'SCode',color:'#a78bfa'},
+  invoice:{label:'Invoice',color:'#ec4899'},contract:{label:'Contract',color:'#84cc16'},
+  source:{label:'SourceData',color:'#f97316'},
+};
+const CLASS_META={
+  BusinessEntity:{props:['(없음)'],desc:'사업주체 최상위 추상 클래스'},
+  Operator:{props:['(없음)'],desc:'통신사업자 공통 상위 (MNO/MVNO 상속)'},
+  MNO:{props:['mnoName','networkType'],desc:'실제 망을 보유한 이동통신사 (KT, SKT, LGU+)'},
+  MVNO:{props:['mvnoName','businessNo'],desc:'가상이동통신망사업자. MNO 망을 임차하여 서비스 제공'},
+  ContractTerm:{props:['termType','validFrom','validTo'],desc:'MNO-MVNO 계약 조건 추상 클래스'},
+  Contract:{props:['contractId','signDate','expiryDate'],desc:'MNO와 MVNO 간 체결된 도매대가 계약'},
+  MVNOProduct:{props:['productName','baseFee','includedDataGB','includedVoiceMin'],desc:'MVNO가 가입자에게 제공하는 통신 상품'},
+  MNOProduct:{props:['mnoProductId','mnoProductName','baseFee'],desc:'MNO가 제공하는 망도매 상품(모요금제). 정산 기준'},
+  Subscriber:{props:['subscriberName','joinDate','terminationDate'],desc:'통신 서비스를 이용하는 실제 가입자'},
+  SubscriberHist:{props:['changeType','changeDate','beforeProductId','afterProductId'],desc:'가입자 상품변경·가입·해지 이력 데이터'},
+  SubscriberProduct:{props:['subscriberId','mvnoProductId','mnoProductId','activeDays'],desc:'가입자의 현재 활성 상품. MNO 모태상품과 연결되어 요율 결정'},
+  SettlementBase:{props:['baseType'],desc:'정산대상 추상 클래스. 어떤 항목 기준으로 정산할지 정의'},
+  SettlementPolicy:{props:['policyCode','policyName','applicableMNOProduct'],desc:'정산정책. 모태상품별 정산 규칙 (SettlementBase 구현)'},
+  SettlementItem:{props:['itemGroupName','itemCount'],desc:'정산코드 그룹(M코드 집합). 클릭하면 M코드 클래스 목록이 펼쳐짐'},
+  SettlementRate:{props:['wholesaleRateBaseFee','agencyFeeBilling','rateValidFrom','rateValidTo'],desc:'정산요율. 가입상품→MNO모태상품→정산대상 경로로 요율 결정'},
+  UsageData:{props:['usageType','usageVolume','subscriberId','usageDate'],desc:'사용량(과금내역) 원본 데이터'},
+  BillPayData:{props:['billDate','payDate','amount'],desc:'청구/수납 내역 원본 데이터'},
+  MNPData:{props:['mnpDate','fromMVNO','toMVNO'],desc:'번호이동 원본 데이터'},
+  MNPReceivable:{props:['receivableAmt','dueDate'],desc:'MNP 관련 채권 정보'},
+  GLPayData:{props:['glDate','glAmount','accountCode'],desc:'GL(일반원장) 수납 정보'},
+  BillingPeriod:{props:['periodYear','periodMonth','totalDaysInMonth'],desc:'월별 정산 기간 단위'},
+  Invoice:{props:['totalAmount','invoiceStatus'],desc:'월별 MVNO 정산서'},
+};
+const OWL_NODES=[
+  {id:'BusinessEntity',domain:'party',abstract:true,label:'BusinessEntity',sub:'사업주체'},
+  {id:'Operator',domain:'party',abstract:true,label:'Operator',sub:'통신사업자'},
+  {id:'MNO',domain:'party',label:'MNO',sub:'망제공통신사'},
+  {id:'MVNO',domain:'party',label:'MVNO',sub:'가상이동통신망'},
+  {id:'ContractTerm',domain:'contract',abstract:true,label:'ContractTerm',sub:'계약조건'},
+  {id:'Contract',domain:'contract',label:'Contract',sub:'MNO-MVNO계약'},
+  {id:'MVNOProduct',domain:'product',label:'MVNOProduct',sub:'MVNO상품'},
+  {id:'MNOProduct',domain:'product',label:'MNOProduct',sub:'MNO상품(모요금제)'},
+  {id:'Subscriber',domain:'party',label:'Subscriber',sub:'가입자'},
+  {id:'SubscriberHist',domain:'party',label:'SubscriberHist',sub:'가입자이력'},
+  {id:'SubscriberProduct',domain:'party',label:'SubscriberProduct',sub:'가입상품'},
+  {id:'SettlementBase',domain:'settlement',abstract:true,label:'SettlementBase',sub:'정산대상(추상)'},
+  {id:'SettlementPolicy',domain:'settlement',label:'SettlementPolicy',sub:'정산정책'},
+  {id:'SettlementItem',domain:'settitem',label:'정산대상항목',sub:'정산코드 그룹'},
+  {id:'SettlementRate',domain:'rate',label:'SettlementRate',sub:'정산요율'},
+  {id:'UsageData',domain:'usage',label:'UsageData',sub:'사용량(과금내역)'},
+  {id:'BillPayData',domain:'source',label:'BillPayData',sub:'청구/수납내역'},
+  {id:'MNPData',domain:'source',label:'MNPData',sub:'번호이동'},
+  {id:'MNPReceivable',domain:'source',label:'MNPReceivable',sub:'MNP채권'},
+  {id:'GLPayData',domain:'source',label:'GLPayData',sub:'GL수납정보'},
+  {id:'BillingPeriod',domain:'billing',label:'BillingPeriod',sub:'정산기간'},
+  {id:'Invoice',domain:'invoice',label:'Invoice',sub:'정산서'},
+];
+const OWL_LINKS=[
+  {s:'Operator',t:'BusinessEntity',type:'sub'},
+  {s:'MNO',t:'Operator',type:'sub'},
+  {s:'MVNO',t:'Operator',type:'sub'},
+  {s:'SettlementPolicy',t:'SettlementBase',type:'sub'},
+  {s:'MVNO',t:'MNO',type:'obj',lbl:'hostedBy'},
+  {s:'MVNO',t:'Contract',type:'obj',lbl:'hasContract'},
+  {s:'Contract',t:'ContractTerm',type:'obj',lbl:'hasTerm'},
+  {s:'MVNOProduct',t:'MVNO',type:'obj',lbl:'offeredBy'},
+  {s:'MVNOProduct',t:'MNOProduct',type:'obj',lbl:'basedOnMNOProduct'},
+  {s:'MNOProduct',t:'MNO',type:'obj',lbl:'providedByMNO'},
+  {s:'Subscriber',t:'MVNO',type:'obj',lbl:'belongsToMVNO'},
+  {s:'Subscriber',t:'MVNOProduct',type:'obj',lbl:'subscribesTo'},
+  {s:'SubscriberHist',t:'Subscriber',type:'obj',lbl:'historyOf'},
+  {s:'SubscriberHist',t:'MVNOProduct',type:'obj',lbl:'productChange'},
+  {s:'SubscriberProduct',t:'Subscriber',type:'obj',lbl:'activeSubscriber'},
+  {s:'SubscriberProduct',t:'MVNOProduct',type:'obj',lbl:'activeMVNOProduct'},
+  {s:'SubscriberProduct',t:'MNOProduct',type:'obj',lbl:'activeMNOProduct'},
+  {s:'SettlementPolicy',t:'MNOProduct',type:'obj',lbl:'policyForMNO'},
+  {s:'SettlementItem',t:'SettlementBase',type:'sub'},
+  {s:'SettlementRate',t:'SettlementItem',type:'obj',lbl:'appliesRate'},
+  {s:'BillingPeriod',t:'SettlementItem',type:'obj',lbl:'periodFor'},
+  {s:'SettlementRate',t:'SettlementBase',type:'obj',lbl:'rateForBase'},
+  {s:'SettlementRate',t:'MVNOProduct',type:'obj',lbl:'appliesTo'},
+  {s:'UsageData',t:'Subscriber',type:'obj',lbl:'usageOf'},
+  {s:'UsageData',t:'BillingPeriod',type:'obj',lbl:'inPeriod'},
+  {s:'BillPayData',t:'Subscriber',type:'obj',lbl:'billOf'},
+  {s:'MNPData',t:'Subscriber',type:'obj',lbl:'mnpOf'},
+  {s:'GLPayData',t:'BillingPeriod',type:'obj',lbl:'inPeriod'},
+  {s:'Invoice',t:'MVNO',type:'obj',lbl:'invoiceForMVNO'},
+  {s:'Invoice',t:'BillingPeriod',type:'obj',lbl:'invoiceForPeriod'},
+];
+const SETT_CODE_TABLE=[
+  {id:'M0001',mid:'가입자당도매대가',label:'가입자당단가',subs:[
+    {name:'가입자당단가(정액선불)',scode:'S0001',rawsrc:'선불가입이력'},
+    {name:'가입자당단가(일반)',    scode:'S0002',rawsrc:'고객가입정보'},
+    {name:'가입자당단가(eSIM)',   scode:'S0003',rawsrc:'고객가입정보'},
+  ]},
+  {id:'M0002',mid:'가입자당도매대가',label:'기간단가',subs:[
+    {name:'기간이전단가',scode:'S0051',rawsrc:'고객가입정보'},
+    {name:'기간이후단가',scode:'S0052',rawsrc:'고객가입정보'},
+  ]},
+  {id:'M0003',mid:'초과종량',label:'초과종량',subs:[
+    {name:'음성',    scode:'S0004',rawsrc:'과금내역'},
+    {name:'영상',    scode:'S0005',rawsrc:'과금내역'},
+    {name:'SMS·MMS',scode:'S0006',rawsrc:'과금내역'},
+    {name:'데이터',  scode:'S0007',rawsrc:'과금내역'},
+  ]},
+  {id:'M0005',mid:'총량',label:'총량',subs:[
+    {name:'음성',scode:'S0011',rawsrc:'과금내역'},{name:'영상',scode:'S0012',rawsrc:'과금내역'},
+    {name:'SMS',scode:'S0013',rawsrc:'과금내역'},{name:'MMS(텍스트)',scode:'S0014',rawsrc:'과금내역'},
+    {name:'MMS(사진·영상)',scode:'S0015',rawsrc:'과금내역'},{name:'데이터',scode:'S0016',rawsrc:'과금내역'},
+  ]},
+  {id:'M0006',mid:'선불100매출',label:'선불100매출',subs:[
+    {name:'선불 음성 국제이용료',scode:'S0018',rawsrc:'선불사용내역'},
+    {name:'선불 SMS 국제이용료',scode:'S0019',rawsrc:'선불사용내역'},
+    {name:'선불 정보이용료',scode:'S0020',rawsrc:'선불사용내역'},
+    {name:'선불 부가서비스',scode:'S0021',rawsrc:'선불사용내역'},
+  ]},
+  {id:'M0008',mid:'위약금',label:'위약금',subs:[{name:'위약금',scode:'S0023',rawsrc:'청구/수납'}]},
+  {id:'M0009',mid:'무제한로밍',label:'무제한로밍',subs:[{name:'무제한로밍',scode:'S0024',rawsrc:'고객가입정보'}]},
+  {id:'M0010',mid:'착신수수료',label:'착신수수료',subs:[{name:'착신수수료',scode:'S0025',rawsrc:'착신CDR내역'}]},
+  {id:'M0011',mid:'부가서비스 인센티브',label:'부가서비스인센티브',subs:[
+    {name:'부가서비스 인센티브',scode:'S0026',rawsrc:'선불사용내역'},
+    {name:'후불부가서비스 인센티브',scode:'S0027',rawsrc:'청구/수납'},
+  ]},
+  {id:'M0012',mid:'GR할인',label:'GR할인',subs:[{name:'GR할인',scode:'S0028',rawsrc:'화면입력'}]},
+  {id:'M0015',mid:'대행수수료',label:'대행수수료',subs:[
+    {name:'과금대행',scode:'S0031',rawsrc:'고객가입정보'},{name:'청구대행',scode:'S0032',rawsrc:'고객가입정보'},
+    {name:'영업전산',scode:'S0033',rawsrc:'고객가입정보'},{name:'수납대행',scode:'S0034',rawsrc:'고객가입정보'},
+  ]},
+  {id:'M0016',mid:'선불 충전',label:'선불충전',subs:[{name:'일반선불 충전',scode:'S0041',rawsrc:'선불충전내역'}]},
+  {id:'M0017',mid:'GL수납금액',label:'GL수납금액',subs:[{name:'GL수납금액',scode:'S0042',rawsrc:'GL(회계자료)'}]},
+  {id:'M0018',mid:'총량_미니멈',label:'총량미니멈',subs:[{name:'미니멈_총량',scode:'S0017',rawsrc:'과금내역'}]},
+  {id:'M0020',mid:'가입자총량',label:'가입자총량',subs:[
+    {name:'음성',scode:'S0043',rawsrc:'과금내역'},{name:'SMS',scode:'S0044',rawsrc:'과금내역'},
+    {name:'데이터',scode:'S0045',rawsrc:'과금내역'},
+  ]},
+  {id:'M0021',mid:'청구기준(RS)',label:'청구기준RS',subs:[{name:'청구기준(RS)',scode:'S0053',rawsrc:'청구'}]},
+  {id:'M0022',mid:'선구매',label:'선구매',subs:[{name:'데이터선구매',scode:'S0054',rawsrc:'데이터선구매내역'}]},
+  {id:'M0023',mid:'수납기준(RS)',label:'수납기준RS',subs:[{name:'수납기준(RS)',scode:'S0055',rawsrc:'수납'}]},
+  {id:'M0024',mid:'청구기준(RS) 차감',label:'청구RS차감',subs:[{name:'청구기준(RS) 차감',scode:'S0056',rawsrc:'청구/수납'}]},
+];
+// V8: M코드·S코드 모두 OWL 클래스. S코드 subClassOf M코드
+SETT_CODE_TABLE.forEach(item=>{
+  OWL_NODES.push({id:item.id,domain:'mcode',label:item.label,sub:item.id});
+  OWL_LINKS.push({s:item.id,t:'SettlementItem',type:'sub'});
+  CLASS_META[item.id]={
+    props:[`소분류 S코드 ${item.subs.length}개`,...item.subs.map(s=>`${s.scode} ${s.name}`)],
+    desc:`${item.mid} (중코드 ${item.id}) — 소분류 S코드 클래스 ${item.subs.length}개 보유`,
+  };
+  item.subs.forEach(s=>{
+    OWL_NODES.push({id:s.scode,domain:'scode',label:s.name,sub:s.scode,
+      isScode:true,mcodeId:item.id,rawsrc:s.rawsrc});
+    OWL_LINKS.push({s:s.scode,t:item.id,type:'sub'});
+    CLASS_META[s.scode]={
+      props:[`원본 데이터: ${s.rawsrc}`,`상위 클래스: ${item.id} ${item.mid}`],
+      desc:`${s.name} (${s.scode}) — ${item.mid} 소분류 정산 클래스`,
+    };
+  });
+});
+const PLANS_BY_MCODE={
+  M0001:[
+    {id:'P001',name:'데이터무한100G',baseFee:10000,wholesaleRate:0.50,desc:'기본료 × 요율 × 일할'},
+    {id:'P002',name:'데이터50G음성200분',baseFee:7000,wholesaleRate:0.45,desc:'기본료 × 요율 × 일할'},
+    {id:'P003',name:'음성전용300분',baseFee:5000,wholesaleRate:0.50,desc:'기본료 × 요율 × 일할'},
+  ],
+  M0002:[
+    {id:'P001',name:'데이터무한100G',prePeriod:1000,postPeriod:800,desc:'가입기간 이전/이후 단가'},
+    {id:'P002',name:'데이터50G음성200분',prePeriod:900,postPeriod:700,desc:'가입기간 이전/이후 단가'},
+    {id:'P003',name:'음성전용300분',prePeriod:800,postPeriod:600,desc:'가입기간 이전/이후 단가'},
+  ],
+  M0003:[
+    {id:'P001',name:'데이터무한100G',voiceRate:1.8,videoRate:3.0,smsRate:10,dataRate:0.5,desc:'초과분 × 종량단가'},
+    {id:'P002',name:'데이터50G음성200분',voiceRate:1.5,videoRate:3.0,smsRate:10,dataRate:0.5,desc:'초과분 × 종량단가'},
+    {id:'P003',name:'음성전용300분',voiceRate:2.0,videoRate:0,smsRate:15,dataRate:0,desc:'초과분 × 종량단가'},
+  ],
+  M0005:[
+    {id:'P001',name:'데이터무한100G',voiceTotal:1.5,dataTotal:500,desc:'사용량 × 총량단가'},
+    {id:'P002',name:'데이터50G음성200분',voiceTotal:1.3,dataTotal:450,desc:'사용량 × 총량단가'},
+    {id:'P003',name:'음성전용300분',voiceTotal:1.8,dataTotal:0,desc:'사용량 × 총량단가'},
+  ],
+  M0015:[
+    {id:'P001',name:'데이터무한100G',billing:100,collection:200,desc:'건당 고정 수수료'},
+    {id:'P002',name:'데이터50G음성200분',billing:100,collection:200,desc:'건당 고정 수수료'},
+    {id:'P003',name:'음성전용300분',billing:100,collection:200,desc:'건당 고정 수수료'},
+  ],
+  M0006:[
+    {id:'P001',name:'데이터무한100G',intlVoice:50,intlSMS:20,desc:'국제이용 × 이용료율'},
+    {id:'P002',name:'데이터50G음성200분',intlVoice:50,intlSMS:20,desc:'국제이용 × 이용료율'},
+    {id:'P003',name:'음성전용300분',intlVoice:60,intlSMS:25,desc:'국제이용 × 이용료율'},
+  ],
+};
+const SETT_INSTANCES=[
+  {id:'I001',name:'나가입',  mcode:'M0001',scode:'S0002',mvno:'알뜰폰 A',  planName:'LTE 150G',   baseFee:10000,rate:0.80,activeDays:30,totalDays:30,settAmt:8000,  calc:'10,000 × 80% × (30/30)'},
+  {id:'I002',name:'김알뜰',  mcode:'M0001',scode:'S0002',mvno:'스마트텔 B',planName:'데이터무한',  baseFee:10000,rate:0.75,activeDays:28,totalDays:30,settAmt:7000,  calc:'10,000 × 75% × (28/30)'},
+  {id:'I003',name:'이선불',  mcode:'M0001',scode:'S0001',mvno:'알뜰폰 A',  planName:'선불 3G',    baseFee:5000, rate:0.70,activeDays:30,totalDays:30,settAmt:3500,  calc:'5,000 × 70% × (30/30)'},
+  {id:'I004',name:'박이심',  mcode:'M0001',scode:'S0003',mvno:'모바일넷 C',planName:'eSIM 5G',    baseFee:15000,rate:0.78,activeDays:15,totalDays:30,settAmt:5850,  calc:'15,000 × 78% × (15/30)'},
+  {id:'I005',name:'최데이터',mcode:'M0001',scode:'S0002',mvno:'링크통신 D',planName:'데이터 50G', baseFee:7000, rate:0.80,activeDays:30,totalDays:30,settAmt:5600,  calc:'7,000 × 80% × (30/30)'},
+  {id:'I006',name:'홍음성',  mcode:'M0003',scode:'S0004',mvno:'알뜰폰 A',  planName:'음성전용',   excess:20,    rate:1.8, settAmt:36,    calc:'초과 20분 × 1.8원/분'},
+  {id:'I007',name:'신데이터',mcode:'M0003',scode:'S0007',mvno:'스마트텔 B',planName:'데이터50G',  excess:10240, rate:0.5, settAmt:5120,  calc:'초과 10GB × 1024 × 0.5원/MB'},
+  {id:'I008',name:'임총량',  mcode:'M0005',scode:'S0011',mvno:'모바일넷 C',planName:'무한요금제', used:200,     rate:1.5, settAmt:300,   calc:'200분 × 1.5원/분'},
+  {id:'I009',name:'강가입자',mcode:'M0005',scode:'S0016',mvno:'알뜰폰 A',  planName:'데이터무한', used:80,      rate:500, settAmt:40000, calc:'80GB × 500원/GB'},
+  {id:'I010',name:'조청구',  mcode:'M0015',scode:'S0032',mvno:'링크통신 D',planName:'데이터50G',  fee:100,      settAmt:100,   calc:'청구대행 건당 100원'},
+  {id:'I011',name:'윤수납',  mcode:'M0015',scode:'S0034',mvno:'디지털폰 E',planName:'음성전용',   fee:200,      settAmt:200,   calc:'수납대행 건당 200원'},
+  {id:'I012',name:'장선불',  mcode:'M0006',scode:'S0018',mvno:'알뜰폰 A',  planName:'선불요금제', used:10,      rate:50,  settAmt:500,   calc:'국제음성 10분 × 50원/분'},
+  {id:'I013',name:'오SMS',   mcode:'M0006',scode:'S0019',mvno:'스마트텔 B',planName:'선불SMS',    used:20,      rate:20,  settAmt:400,   calc:'국제SMS 20건 × 20원/건'},
+  {id:'I014',name:'한GR',    mcode:'M0012',scode:'S0028',mvno:'모바일넷 C',planName:'전체상품',   rsBase:1000000,rate:0.05,settAmt:-50000,calc:'RS기준 1,000,000 × -5%'},
+  {id:'I015',name:'류로밍',  mcode:'M0009',scode:'S0024',mvno:'링크통신 D',planName:'로밍상품',   fee:30000,    settAmt:30000, calc:'로밍 가입자당 30,000원'},
+];
+const MVNO_NAMES=['알뜰폰 A','스마트텔 B','모바일넷 C','링크통신 D','디지털폰 E'];
+function seedRand(s){let x=s;return()=>{x=(Math.imul(1664525,x)+1013904223)>>>0;return x/4294967296;};}
+
+function getUnitPriceByMVNO(mcodeId,scodeId){
+  const mc=SETT_CODE_TABLE.find(x=>x.id===mcodeId);if(!mc)return[];
+  const rng=seedRand((mcodeId+String(scodeId||'')).split('').reduce((a,c)=>a+c.charCodeAt(0),0)*31);
+  const unitBase={M0001:8500,M0002:900,M0003:2,M0005:250,M0006:40,M0009:28000,M0012:-0.03,M0015:150};
+  const base=unitBase[mcodeId]||500;
+  return MVNO_NAMES.map((name,i)=>{
+    const r=rng;
+    const subs=Math.round(200+rng()*1800);
+    const unitPrice=Math.round(base*(0.8+rng()*0.4));
+    const totalAmt=subs*unitPrice;
+    return{mvno:name,subs,unitPrice,totalAmt};
+  });
+}
+function getUnitPriceByPlan(mcodeId,scodeId){
+  const mc=SETT_CODE_TABLE.find(x=>x.id===mcodeId);if(!mc)return[];
+  const plans=[
+    {id:'P001',name:'데이터무한100G'},
+    {id:'P002',name:'데이터50G음성200분'},
+    {id:'P003',name:'음성전용300분'},
+  ];
+  const rng=seedRand((mcodeId+'plan'+String(scodeId||'')).split('').reduce((a,c)=>a+c.charCodeAt(0),0)*17);
+  const unitBase={M0001:8500,M0002:900,M0003:2,M0005:250,M0006:40,M0009:28000,M0012:-0.03,M0015:150};
+  const base=unitBase[mcodeId]||500;
+  return plans.map(p=>{
+    const subs=Math.round(300+rng()*1200);
+    const unitPrice=Math.round(base*(0.75+rng()*0.5));
+    const totalAmt=subs*unitPrice;
+    return{planId:p.id,planName:p.name,subs,unitPrice,totalAmt};
+  });
+}
+function getSampleInstances(mcodeId,filterMVNO,filterPlan,scodeId){
+  const mc=SETT_CODE_TABLE.find(x=>x.id===mcodeId);if(!mc)return[];
+  const subs=SETT_CODE_TABLE.flatMap(()=>[]);
+  const real=SETT_INSTANCES.filter(i=>{
+    if(i.mcode!==mcodeId)return false;
+    if(scodeId&&i.scode!==scodeId)return false;
+    if(filterMVNO&&i.mvno!==filterMVNO)return false;
+    if(filterPlan&&i.planName!==filterPlan)return false;
+    return true;
+  });
+  if(real.length)return real;
+  const rng=seedRand((mcodeId+String(filterMVNO||'')+String(filterPlan||'')).split('').reduce((a,c)=>a+c.charCodeAt(0),0)*7);
+  const unitBase={M0001:8500,M0002:900,M0003:2,M0005:250,M0006:40,M0009:28000,M0015:150};
+  const base=unitBase[mcodeId]||500;
+  const mvnoList=filterMVNO?[filterMVNO]:MVNO_NAMES;
+  const planList=filterPlan?[filterPlan]:['데이터무한100G','데이터50G음성200분','음성전용300분'];
+  const names=['김가입','이알뜰','박선불','최데이터','정음성','강이심','조로밍','윤수납','한청구','류통신'];
+  const result=[];let idx=0;
+  mvnoList.forEach(mv=>planList.forEach(pl=>{
+    const cnt=Math.floor(2+rng()*4);
+    for(let i=0;i<cnt&&idx<20;i++,idx++){
+      const days=Math.round(10+rng()*20);
+      const unitP=Math.round(base*(0.8+rng()*0.4));
+      const amt=Math.round(unitP*(days/30));
+      result.push({id:`SMP_${mcodeId}_${idx}`,name:names[idx%names.length]+(idx+1),
+        mcode:mcodeId,scode:scodeId||mc.subs[0]?.scode||'',
+        mvno:mv,planName:pl,baseFee:unitP,activeDays:days,totalDays:30,
+        settAmt:amt,calc:`${unitP.toLocaleString()}원 × (${days}/30일)`});
+    }
+  }));
+  return result;
+}
+function getMVNOSettByMcode(mcode){
+  const sc=SETT_CODE_TABLE.find(x=>x.id===mcode);if(!sc)return [];
+  const mvnos=['알뜰폰 A','스마트텔 B','모바일넷 C','링크통신 D','디지털폰 E'];
+  return mvnos.map((name,mi)=>{
+    const subs={};let seed=mi*9999+mcode.charCodeAt(1)*37;
+    sc.subs.forEach(s=>{seed=(Math.imul(1664525,seed)+1013904223)>>>0;subs[s.scode]=Math.round((seed/4294967296)*8000000+300000)/1000*1000;});
+    return{mvno:name,subs,total:Object.values(subs).reduce((a,b)=>a+b,0)};
+  });
+}
+// ══════════════════════════════════════════════════════
+// §V8_S2 — 상태
+// ══════════════════════════════════════════════════════
+const CLASS_SUBS={
+  Subscriber:SUBSCRIBERS.map(s=>s.id),
+  MVNOProduct:SUBSCRIBERS.map(s=>s.id),
+  SubscriberProduct:SUBSCRIBERS.map(s=>s.id),
+  MVNO:SUBSCRIBERS.map(s=>s.id),
+  SettlementRate:SUBSCRIBERS.map(s=>s.id),
+  BillingPeriod:SUBSCRIBERS.map(s=>s.id),
+  Invoice:SUBSCRIBERS.map(s=>s.id),
+  UsageData:SUBSCRIBERS.map(s=>s.id),
+};
+SETT_CODE_TABLE.forEach(mc=>{
+  mc.subs.forEach(s=>{
+    const insts=SETT_INSTANCES.filter(i=>i.scode===s.scode);
+    if(insts.length)CLASS_SUBS[s.scode]=insts.map(i=>i.id);
+  });
+});
+function getSubPath(subId){
+  const sub=SUBSCRIBERS.find(s=>s.id===subId);
+  const prod=PRODUCTS.find(p=>p.id===sub.productId);
+  const res=calcAllItems(sub,prod,RATES[sub.productId],BILLING);
+  const ns=new Set(['Subscriber','MVNOProduct','MNOProduct','SettlementRate',
+    'BillingPeriod','Invoice','MVNO','UsageData','SubscriberProduct']);
+  if(res.excV>0||res.excVid>0||res.excSMS>0||res.excData>0) ns.add('UsageData');
+  return ns;
+}
+const SAMPLE_INST={
+  label:'나가입',
+  path:new Set(['SubscriberProduct','MVNOProduct','MNOProduct','SettlementRate',
+                'BillingPeriod','M0001','Invoice']),
+  annot:{
+    SubscriberProduct:{lines:['나가입','활성 30일'],    color:'#f97316'},
+    MVNOProduct:      {lines:['LTE 150G','10,000원'],   color:'#10b981'},
+    MNOProduct:       {lines:['데이터전용 100G'],        color:'#10b981'},
+    SettlementRate:   {lines:['도매대가율 80%'],         color:'#f59e0b'},
+    M0001:            {lines:['가입자당도매대가','S0002 일반'],color:'#ef4444'},
+    Invoice:          {lines:['청구 8,000원'],           color:'#ec4899'},
+  },
+  steps:[
+    {nodeId:'SubscriberProduct',domain:'party',label:'SubscriberProduct',badge:'가입 상품',
+     vals:[['고객명','나가입'],['가입일','2026-01-01'],['활성일수','30일'],['MVNO상품','LTE 150G']]},
+    {nodeId:'MVNOProduct',domain:'product',label:'MVNOProduct (MVNO 상품)',badge:'MVNO 상품',
+     vals:[['상품명','LTE 150G'],['요금제 금액','10,000원'],['포함 데이터','150GB']]},
+    {nodeId:'MNOProduct',domain:'product',label:'MNOProduct (MNO 모태상품)',badge:'MNO 모태상품',
+     vals:[['망도매 상품명','데이터 전용 100G'],['MNO 매핑','1:1 매핑']]},
+    {nodeId:'SettlementRate',domain:'rate',label:'SettlementRate (정산요율)',badge:'정산요율',
+     vals:[['도매대가율','80%'],['유효기간','2026-01'],['중분류','가입자당도매대가']]},
+    {nodeId:'M0001',domain:'settlement',label:'M0001 (가입자당도매대가)',badge:'정산코드',
+     vals:[['중분류','가입자당도매대가'],['소분류','가입자당단가(일반)'],['소코드','S0002'],['RawData','고객가입정보']]},
+    {nodeId:'Invoice',domain:'invoice',label:'Invoice (정산서)',badge:'정산서',
+     vals:[['총 정산액','8,000원'],['정산월','2026-07'],['상태','정산완료']]},
+  ],
+};
+const State={selClass:null,selSub:null,showSub:true,showObj:true,pathAnim:false};
+let currentView='ontology';
+let selMVNO=null;
+let mvnoStyle='bubble';
+let _selMCode=null;
+let _selSCode=null;
+let _selMCodeInst=null;
+let _selScodeInst=null;
+let _mcInstSearch='';
+let _mcFilterMVNO=null;
+let _mcFilterPlan=null;
+let isDark=true;
+let _sampleActive=false;
+function toggleTheme(){
+  isDark=!isDark;
+  document.body.classList.toggle('light',!isDark);
+  const btn=document.getElementById('btn-theme');
+  btn.textContent=isDark?'🌙':'☀️';
+  btn.title=isDark?'화이트 모드로 전환':'다크 모드로 전환';
+  if(State.selClass){
+    const d=OWL_NODES.find(n=>n.id===State.selClass);
+    if(d){renderSlideInfo(d);renderSlideMVNO();renderSlideProd();renderSlideInstances(d);renderSlideCalc();renderSlideWhatif();}
+  }
+}
+let wiOv={};
+const Srch={inst:{text:'',esim:false,prepaid:false,excess:false},mvno:{prod:'ALL',cat:'ALL'}};
+const nodes=OWL_NODES.map(d=>({...d}));
+(function computeLevels(){
+  const parents={};
+  OWL_LINKS.forEach(l=>{if(l.type==='sub'){(parents[l.s]=parents[l.s]||[]).push(l.t);}});
+  const memo={};
+  function lvl(id){
+    if(memo[id]!==undefined)return memo[id];
+    const ps=parents[id]||[];
+    memo[id]=ps.length?Math.max(...ps.map(lvl))+1:0;
+    return memo[id];
+  }
+  nodes.forEach(n=>{n.level=lvl(n.id);});
+})();
+
+// ══════════════════════════════════════════════════════
+// §V8_S3 — ReactFlow 레이아웃 (v8: M/S코드 배치 개선 + 엣지 겹침 해소)
+// ══════════════════════════════════════════════════════
+const{
+  ReactFlow:RF,Background,Controls,MiniMap,
+  Handle,Position,MarkerType,
+  useNodesState,useEdgesState,useReactFlow,ReactFlowProvider,
+}=window.ReactFlow;
+const h=React.createElement;
+const RF_NW=118,RF_NH=44,RF_VGAP=100;
+const RF_LAYER_NAMES=[
+  '① 사업주체 · 계약',
+  '② 상품 · 정산요율',
+  '③ 가입 · 정산기간',
+  '④ 원본데이터',
+  '⑤ 정산대상항목',
+  '⑥ 정산코드 (M코드)',
+  '⑦ 정산소코드 (S코드)',
+];
+const RF_LAYER_IDS=[
+  ['BusinessEntity','Operator','MNO','MVNO','ContractTerm','Contract'],
+  ['MVNOProduct','MNOProduct','SettlementRate'],
+  ['Subscriber','SubscriberHist','SubscriberProduct','BillingPeriod'],
+  ['UsageData','BillPayData','MNPData','MNPReceivable','GLPayData'],
+  ['SettlementBase','SettlementPolicy','SettlementItem'],
+  [],
+  [],
+];
+function buildRFLayout(settExpanded,expandedMCodes){
+  const NW=RF_NW,NH=RF_NH,HGAP=18,RH=NH+RF_VGAP;
+  const SW=104,SHGAP=8,SGROUP_GAP=16,S_GAP=18,ROW_GAP=18,MROW_YGAP=30;
+  const posMap={};
+  const layerMinX={};
+  RF_LAYER_IDS.slice(0,5).forEach((ids,ri)=>{
+    const total=ids.length;
+    const rowW=total*NW+(total-1)*HGAP;
+    ids.forEach((id,ci)=>{posMap[id]={x:ci*(NW+HGAP)-rowW/2,y:ri*RH};});
+    layerMinX[ri]=ids.length?-rowW/2-10:0;
+  });
+  // M코드 2행 배치 (앞 10 / 뒤 9)
+  const MC_PER_ROW=10,MHGAP=18;
+  const mcA=SETT_CODE_TABLE.slice(0,MC_PER_ROW);
+  const mcB=SETT_CODE_TABLE.slice(MC_PER_ROW);
+  const rowAW=mcA.length*(NW+MHGAP)-MHGAP;
+  const rowBW=mcB.length*(NW+MHGAP)-MHGAP;
+  // 1행 M코드 중 확장된 것이 있으면 2행을 아래로 밀어냄
+  const hasExpandedA=mcA.some(mc=>expandedMCodes&&expandedMCodes.has(mc.id));
+  const hasExpandedB=mcB.some(mc=>expandedMCodes&&expandedMCodes.has(mc.id));
+  const ROW_A_Y=5*RH;
+  const S_ROW_A_Y=ROW_A_Y+NH+S_GAP;
+  const ROW_B_Y=hasExpandedA?S_ROW_A_Y+NH+ROW_GAP:ROW_A_Y+NH+MROW_YGAP;
+  const S_ROW_B_Y=ROW_B_Y+NH+S_GAP;
+  mcA.forEach((mc,i)=>{posMap[mc.id]={x:i*(NW+MHGAP)-rowAW/2,y:ROW_A_Y};});
+  mcB.forEach((mc,i)=>{posMap[mc.id]={x:i*(NW+MHGAP)-rowBW/2,y:ROW_B_Y};});
+  layerMinX[5]=-Math.max(rowAW,rowBW)/2-10;
+  // S코드: 각 행별로 부모 M코드 바로 아래에 배치, 그룹 겹침 시 오른쪽으로 밀어냄
+  const scodePositions={};
+  function placeScodeRow(mcs,scY){
+    const expanded=mcs.filter(mc=>expandedMCodes&&expandedMCodes.has(mc.id));
+    if(!expanded.length)return;
+    const groups=expanded.map(mc=>{
+      const mPos=posMap[mc.id];
+      const cnt=mc.subs.length;
+      const groupW=cnt*(SW+SHGAP)-SHGAP;
+      return{mc,groupW,actualX:mPos.x+NW/2-groupW/2};
+    }).sort((a,b)=>a.actualX-b.actualX);
+    for(let i=1;i<groups.length;i++){
+      const minX=groups[i-1].actualX+groups[i-1].groupW+SGROUP_GAP;
+      if(groups[i].actualX<minX)groups[i].actualX=minX;
+    }
+    groups.forEach(({mc,actualX})=>{
+      mc.subs.forEach((s,si)=>{scodePositions[s.scode]={x:actualX+si*(SW+SHGAP),y:scY};});
+    });
+  }
+  placeScodeRow(mcA,S_ROW_A_Y);
+  placeScodeRow(mcB,S_ROW_B_Y);
+  Object.assign(posMap,scodePositions);
+  const scXArr=Object.values(scodePositions).map(p=>p.x);
+  layerMinX[6]=scXArr.length?Math.min(...scXArr)-10:layerMinX[5];
+  const layerY={};
+  for(let i=0;i<5;i++)layerY[i]=i*RH;
+  layerY[5]=ROW_A_Y;
+  const firstScY=hasExpandedA?S_ROW_A_Y:hasExpandedB?S_ROW_B_Y:S_ROW_B_Y;
+  layerY[6]=firstScY;
+  nodes.forEach(n=>{if(!posMap[n.id])posMap[n.id]={x:0,y:0};});
+  return{posMap,layerMinX,scodePositions,layerY};
+}
+function OntNodeComp({data,id}){
+  const dom=DOMAINS[data.domain]||{color:'#6b7280'};
+  const hs={width:6,height:6,background:'transparent',border:'none',borderRadius:2,opacity:0};
+  const hm={width:6,height:6,background:'transparent',border:'none',borderRadius:2,opacity:0};
+  const ts=data.traceSelected;
+  const bg=ts?`${dom.color}55`:data.onPath?`${dom.color}44`:data.highlighted?`${dom.color}22`:'#1a2332';
+  const bdr=ts?`2.5px solid ${dom.color}`:data.onPath?`2px solid ${dom.color}`:data.highlighted?`1.5px solid ${dom.color}66`:`1.5px solid ${dom.color}44`;
+  const shadow=ts?`0 0 0 3px ${dom.color}88,0 0 14px ${dom.color}66`:undefined;
+  const lbl=(data.abstract?'◇ ':'')+data.label;
+  return h('div',{className:'rf-ont-node',
+    style:{background:bg,border:bdr,boxShadow:shadow,minWidth:RF_NW,minHeight:RF_NH,position:'relative',padding:'4px 10px',display:'flex',flexDirection:'column',justifyContent:'center',opacity:data.dimmed?.18:1,transition:'opacity .2s,box-shadow .2s,border-color .2s'}},
+    h(Handle,{type:'target',id:'t-top',   position:Position.Top,   style:{...hs,left:'50%'}}),
+    h(Handle,{type:'target',id:'t-top-l', position:Position.Top,   style:{...hs,left:'25%'}}),
+    h(Handle,{type:'target',id:'t-top-r', position:Position.Top,   style:{...hs,left:'75%'}}),
+    h(Handle,{type:'source',id:'s-top',   position:Position.Top,   style:{...hs,left:'50%'}}),
+    h(Handle,{type:'source',id:'s-top-l', position:Position.Top,   style:{...hs,left:'25%'}}),
+    h(Handle,{type:'source',id:'s-top-r', position:Position.Top,   style:{...hs,left:'75%'}}),
+    h(Handle,{type:'target',id:'t-left',  position:Position.Left,  style:{...hm,top:'50%'}}),
+    h(Handle,{type:'target',id:'t-left-t',position:Position.Left,  style:{...hm,top:'30%'}}),
+    h(Handle,{type:'target',id:'t-left-b',position:Position.Left,  style:{...hm,top:'70%'}}),
+    h(Handle,{type:'source',id:'s-left',  position:Position.Left,  style:{...hm,top:'50%'}}),
+    h(Handle,{type:'source',id:'s-left-t',position:Position.Left,  style:{...hm,top:'30%'}}),
+    h(Handle,{type:'source',id:'s-left-b',position:Position.Left,  style:{...hm,top:'70%'}}),
+    h(Handle,{type:'source',id:'s-right',  position:Position.Right, style:{...hm,top:'50%'}}),
+    h(Handle,{type:'source',id:'s-right-t',position:Position.Right, style:{...hm,top:'30%'}}),
+    h(Handle,{type:'source',id:'s-right-b',position:Position.Right, style:{...hm,top:'70%'}}),
+    h(Handle,{type:'target',id:'t-right',  position:Position.Right, style:{...hm,top:'50%'}}),
+    h(Handle,{type:'target',id:'t-right-t',position:Position.Right, style:{...hm,top:'30%'}}),
+    h(Handle,{type:'target',id:'t-right-b',position:Position.Right, style:{...hm,top:'70%'}}),
+    h('div',{className:'rn-label',style:{color:dom.color}},lbl),
+    data.sub?h('div',{className:'rn-sub'},data.sub):null,
+    h(Handle,{type:'source',id:'s-bottom',position:Position.Bottom,style:{...hs,left:'50%'}}),
+    h(Handle,{type:'source',id:'s-bot-l', position:Position.Bottom,style:{...hs,left:'25%'}}),
+    h(Handle,{type:'source',id:'s-bot-r', position:Position.Bottom,style:{...hs,left:'75%'}}),
+    h(Handle,{type:'target',id:'t-bottom',position:Position.Bottom,style:{...hs,left:'50%'}}),
+    h(Handle,{type:'target',id:'t-bot-l', position:Position.Bottom,style:{...hs,left:'25%'}}),
+    h(Handle,{type:'target',id:'t-bot-r', position:Position.Bottom,style:{...hs,left:'75%'}})
+  );
+}
+const SW_SC=104;
+function ScodeNodeComp({data,id}){
+  const dom=DOMAINS['scode']||{color:'#a78bfa'};
+  const ts=data.traceSelected;
+  const bg=ts?`${dom.color}44`:data.onPath?`${dom.color}33`:'#1a2332';
+  const bdr=ts?`2.5px solid ${dom.color}`:data.onPath?`2px solid ${dom.color}`:`2px solid ${dom.color}55`;
+  const shadow=ts?`0 0 0 3px ${dom.color}88,0 0 14px ${dom.color}66`:undefined;
+  return h('div',{className:'rf-scode-node',style:{background:bg,border:bdr,boxShadow:shadow,minWidth:SW_SC,minHeight:RF_NH,position:'relative',padding:'4px 9px',display:'flex',flexDirection:'column',justifyContent:'center',borderLeft:`3px solid ${dom.color}`,opacity:data.dimmed?.18:1,transition:'opacity .2s,box-shadow .2s'}},
+    h(Handle,{type:'target',id:'t-top',position:Position.Top,style:{width:5,height:5,background:'transparent',border:'none',borderRadius:2,opacity:0}}),
+    h(Handle,{type:'source',id:'s-bottom',position:Position.Bottom,style:{width:5,height:5,background:'transparent',border:'none',borderRadius:2,opacity:0}}),
+    h('div',{className:'rsc-code',style:{color:dom.color}},data.sub),
+    h('div',{className:'rsc-name'},data.label),
+    data.rawsrc?h('div',{className:'rsc-src'},`📋 ${data.rawsrc}`):null,
+  );
+}
+function LayerLabelComp({data}){
+  return h('div',{style:{
+    fontSize:10,color:'#4b5563',fontWeight:700,letterSpacing:.04,
+    background:'#0a0f1e88',padding:'2px 10px',borderRadius:4,
+    border:'1px solid #1a2332',whiteSpace:'nowrap',pointerEvents:'none',
+  }},data.label);
+}
+const LABEL_KO={
+  hostedBy:'가입망',hasContract:'계약보유',hasTerm:'약관보유',
+  offeredBy:'제공사',basedOnMNOProduct:'기반상품',providedByMNO:'MNO제공',
+  belongsToMVNO:'MVNO소속',subscribesTo:'가입상품',historyOf:'가입이력',
+  productChange:'상품변경',activeSubscriber:'가입자',activeMVNOProduct:'MVNO상품',
+  activeMNOProduct:'MNO상품',policyForMNO:'MNO정책',appliesRate:'요율적용',
+  periodFor:'기간적용',rateForBase:'기준요율',appliesTo:'적용대상',
+  usageOf:'사용이력',inPeriod:'기간내',billOf:'청구이력',mnpOf:'MNP이력',
+  invoiceForMVNO:'MVNO청구',invoiceForPeriod:'청구기간',
+};
+const nodeTypes={ont:OntNodeComp,scode:ScodeNodeComp,layerlabel:LayerLabelComp};
+// ── 공통 컨텍스트 헬퍼 (노드 클릭 & 트레이스 탭 공유)
+function getScodeContext(scId){
+  const ids=new Set([scId]);
+  const parentMc=SETT_CODE_TABLE.find(mc=>mc.subs.some(s=>s.scode===scId));
+  if(parentMc) ids.add(parentMc.id);
+  ['SettlementItem','SettlementBase','SettlementRate','SettlementPolicy',
+   'BillingPeriod','Subscriber','SubscriberHist','SubscriberProduct',
+   'MVNOProduct','MNOProduct'].forEach(id=>ids.add(id));
+  return ids;
+}
+function getMcodeContext(mcId){
+  const ids=new Set([mcId]);
+  const mc=SETT_CODE_TABLE.find(x=>x.id===mcId);
+  if(mc) mc.subs.forEach(s=>ids.add(s.scode));
+  ['SettlementItem','SettlementBase','SettlementRate','SettlementPolicy',
+   'BillingPeriod','Subscriber','SubscriberHist','SubscriberProduct'].forEach(id=>ids.add(id));
+  return ids;
+}
+function OntologyFlowApp(){
+  const[settExpanded,setSettExpanded]=React.useState(false);
+  const[expandedMCodes,setExpandedMCodes]=React.useState(()=>new Set());
+  const[showKorean,setShowKorean]=React.useState(false);
+  const[selClass,setSelClass]=React.useState(null);
+  const[tracePath,setTracePath]=React.useState(null);
+  const[traceSelId,setTraceSelId]=React.useState(null);
+  React.useEffect(()=>{
+    window.__setShowKorean=setShowKorean;
+    window.__setTracePath=setTracePath;
+    window.__setTraceSelId=setTraceSelId;
+    window.__setSelClass=setSelClass;
+  },[setShowKorean,setTracePath,setTraceSelId,setSelClass]);
+  const rfLayout=React.useMemo(()=>buildRFLayout(settExpanded,expandedMCodes),[settExpanded,expandedMCodes]);
+  const{posMap,layerMinX,layerY}=rfLayout;
+  const initNodes=React.useMemo(()=>{
+    const ns=[];
+    const mCodeIds=new Set(SETT_CODE_TABLE.map(mc=>mc.id));
+    const expandedScodeIds=new Set();
+    if(settExpanded){
+      SETT_CODE_TABLE.forEach(mc=>{
+        if(expandedMCodes.has(mc.id))mc.subs.forEach(s=>expandedScodeIds.add(s.scode));
+      });
+    }
+    const visibleNodes=nodes.filter(n=>{
+      if(n.isScode)return expandedScodeIds.has(n.id);
+      if(mCodeIds.has(n.id))return settExpanded;
+      return true;
+    });
+    visibleNodes.forEach(n=>{
+      const p=posMap[n.id]||{x:0,y:0};
+      ns.push({
+        id:n.id,
+        type:n.isScode?'scode':'ont',
+        position:p,
+        data:{...n,settExpanded,mExpanded:expandedMCodes.has(n.id)},
+        draggable:true,
+        selectable:true,
+      });
+    });
+    RF_LAYER_NAMES.forEach((name,ri)=>{
+      if(ri===5&&!settExpanded)return;
+      if(ri===6&&expandedScodeIds.size===0)return;
+      const lx=(layerMinX[ri]||0)-160;
+      const ly=(layerY&&layerY[ri]!==undefined)?layerY[ri]:ri*(RF_NH+RF_VGAP);
+      ns.push({
+        id:`__layer_${ri}`,type:'layerlabel',
+        position:{x:lx,y:ly+(RF_NH-20)/2},
+        data:{label:name},
+        draggable:false,selectable:false,
+      });
+    });
+    return ns;
+  },[rfLayout,settExpanded,expandedMCodes]);
+  const initEdges=React.useMemo(()=>{
+    const{posMap}=rfLayout;
+    const visibleIds=new Set(initNodes.map(n=>n.id).filter(id=>!id.startsWith('__layer_')));
+    const tgtGroups={};
+    const srcGroups={};
+    OWL_LINKS.forEach((l,i)=>{
+      if(!visibleIds.has(l.s)||!visibleIds.has(l.t))return;
+      const sp=posMap[l.s]||{x:0,y:0};
+      const tp=posMap[l.t]||{x:0,y:0};
+      const dy=tp.y-sp.y,dx=tp.x-sp.x;
+      const sameRow=Math.abs(dy)<30;
+      const tSide=sameRow?(dx>=0?'left':'right'):(dy>0?'top':'bottom');
+      const sSide=sameRow?(dx>=0?'right':'left'):(dy>0?'bottom':'top');
+      const tk=`${l.t}|${tSide}`;
+      const sk=`${l.s}|${sSide}`;
+      if(!tgtGroups[tk])tgtGroups[tk]=[];
+      tgtGroups[tk].push({i,sp,tp});
+      if(!srcGroups[sk])srcGroups[sk]=[];
+      srcGroups[sk].push({i,sp,tp});
+    });
+    const edgeTgtH={};
+    const edgeSrcH={};
+    Object.entries(tgtGroups).forEach(([key,group])=>{
+      if(group.length<=1)return;
+      const side=key.split('|')[1];
+      group.sort((a,b)=>a.sp.x-b.sp.x);
+      group.forEach(({i},gi)=>{
+        if(side==='top')       edgeTgtH[i]=gi===0?'t-top-l' :gi===1?'t-top'   :'t-top-r';
+        else if(side==='bottom')edgeTgtH[i]=gi===0?'t-bot-l' :gi===1?'t-bottom':'t-bot-r';
+        else if(side==='left') edgeTgtH[i]=gi===0?'t-left-t':gi===1?'t-left'  :'t-left-b';
+        else                   edgeTgtH[i]=gi===0?'t-right-t':gi===1?'t-right' :'t-right-b';
+      });
+    });
+    Object.entries(srcGroups).forEach(([key,group])=>{
+      if(group.length<=1)return;
+      const side=key.split('|')[1];
+      group.sort((a,b)=>a.tp.x-b.tp.x);
+      group.forEach(({i},gi)=>{
+        if(side==='bottom')    edgeSrcH[i]=gi===0?'s-bot-l' :gi===1?'s-bottom':'s-bot-r';
+        else if(side==='top')  edgeSrcH[i]=gi===0?'s-top-l' :gi===1?'s-top'   :'s-top-r';
+        else if(side==='right')edgeSrcH[i]=gi===0?'s-right-t':gi===1?'s-right' :'s-right-b';
+        else                   edgeSrcH[i]=gi===0?'s-left-t' :gi===1?'s-left'  :'s-left-b';
+      });
+    });
+    const ontEdges=[];
+    OWL_LINKS.forEach((l,i)=>{
+      if(!visibleIds.has(l.s)||!visibleIds.has(l.t))return;
+      const isSub=l.type==='sub';
+      const sp=posMap[l.s]||{x:0,y:0};
+      const tp=posMap[l.t]||{x:0,y:0};
+      const dy=tp.y-sp.y,dx=tp.x-sp.x;
+      const sameRow=Math.abs(dy)<30;
+      let srcH=sameRow?(dx>=0?'s-right':'s-left'):(dy>0?'s-bottom':'s-top');
+      let tgtH=sameRow?(dx>=0?'t-left':'t-right'):(dy>0?'t-top':'t-bottom');
+      if(edgeSrcH[i])srcH=edgeSrcH[i];
+      if(edgeTgtH[i])tgtH=edgeTgtH[i];
+      ontEdges.push({
+        id:`e_${i}_${l.s}_${l.t}`,source:l.s,target:l.t,
+        type:'smoothstep',
+        sourceHandle:srcH,targetHandle:tgtH,
+        style:isSub
+          ?{stroke:'#3b4f6b',strokeWidth:1.2,opacity:.7}
+          :{stroke:'#fbbf24',strokeWidth:1,strokeDasharray:'5,3',opacity:.4},
+        markerEnd:isSub?{type:MarkerType.ArrowClosed,color:'#334155',width:10,height:10}:undefined,
+        label:!isSub?(l.lbl||''):undefined,
+        labelStyle:{fill:'#fbbf24',fontSize:8,fontWeight:600},
+        labelBgStyle:{fill:'#0a0f1e99',borderRadius:3,padding:2},
+        data:{linkType:l.type,lbl:l.lbl||''},hidden:false,
+      });
+    });
+    return ontEdges;
+  },[rfLayout,initNodes]);
+  const[rfNodes,setRFNodes,onNodesChange]=useNodesState(initNodes);
+  const[rfEdges,setRFEdges,onEdgesChange]=useEdgesState(initEdges);
+  const{fitView}=useReactFlow();
+  React.useEffect(()=>{
+    setRFNodes(initNodes);setRFEdges(initEdges);
+    setTimeout(()=>fitView({padding:.12,duration:500}),80);
+  },[initNodes,initEdges]);
+  React.useEffect(()=>{
+    const selId=selClass;
+    const sampleActive=_sampleActive;
+    const pathIds=sampleActive?SAMPLE_INST.path:null;
+    const isObj=e=>e.data?.linkType==='obj';
+    const getLbl=e=>isObj(e)?(showKorean?(LABEL_KO[e.data?.lbl]||e.data?.lbl||''):(e.data?.lbl||'')):undefined;
+    // ── 정산과정 트레이스 모드
+    if(tracePath){
+      setRFNodes(prev=>prev.map(n=>{
+        const onPath=tracePath.has(n.id);
+        const traceSelected=!!(traceSelId&&n.id===traceSelId);
+        const dimmed=!onPath&&!traceSelected&&!n.id.startsWith('__layer_');
+        return{...n,data:{...n.data,onPath,highlighted:false,traceSelected,dimmed,settExpanded,mExpanded:expandedMCodes.has(n.id),annot:null}};
+      }));
+      setRFEdges(prev=>prev.map(e=>{
+        const onPath=tracePath.has(e.source)&&tracePath.has(e.target);
+        const op=onPath?1:0.06;
+        return{...e,hidden:false,label:getLbl(e),
+          style:{...e.style,opacity:op},
+          labelStyle:{...(e.labelStyle||{}),opacity:op},
+          labelBgStyle:{...(e.labelBgStyle||{}),opacity:op}};
+      }));
+      return;
+    }
+    // ── 일반 선택 모드
+    const connectedIds=new Set();
+    if(selId&&!pathIds){
+      connectedIds.add(selId);
+      const scodeNode=OWL_NODES.find(n=>n.id===selId&&n.isScode);
+      const mcodeEntry=SETT_CODE_TABLE.find(mc=>mc.id===selId);
+      if(scodeNode){
+        getScodeContext(selId).forEach(id=>connectedIds.add(id));
+      } else if(mcodeEntry){
+        getMcodeContext(selId).forEach(id=>connectedIds.add(id));
+      } else {
+        // 일반 노드: 1홉 직접 연결
+        OWL_LINKS.forEach(l=>{if(l.s===selId)connectedIds.add(l.t);if(l.t===selId)connectedIds.add(l.s);});
+      }
+    }
+    setRFNodes(prev=>prev.map(n=>{
+      const onPath=pathIds?pathIds.has(n.id):false;
+      const highlighted=!pathIds&&selId&&n.id===selId;
+      const dimmed=!!(selId&&!highlighted&&!onPath&&!connectedIds.has(n.id)&&!n.id.startsWith('__layer_'));
+      return{...n,data:{...n.data,onPath,highlighted,dimmed,settExpanded,mExpanded:expandedMCodes.has(n.id),
+        annot:sampleActive?(SAMPLE_INST.annot[n.id]||null):null}};
+    }));
+    setRFEdges(prev=>prev.map(e=>{
+      const onPath=pathIds?pathIds.has(e.source)&&pathIds.has(e.target):false;
+      const edgeLit=selId&&!pathIds&&connectedIds.has(e.source)&&connectedIds.has(e.target);
+      const op=onPath?1:pathIds?0.08:(!selId?undefined:(edgeLit?0.9:0.08));
+      return{...e,hidden:false,label:getLbl(e),
+        style:{...e.style,opacity:op},
+        labelStyle:{...(e.labelStyle||{}),opacity:op!==undefined?op:1},
+        labelBgStyle:{...(e.labelBgStyle||{}),opacity:op!==undefined?op:1}};
+    }));
+  },[selClass,_sampleActive,settExpanded,expandedMCodes,showKorean,tracePath,traceSelId]);
+  const onNodeClick=React.useCallback((_,node)=>{
+    if(node.type==='layerlabel')return;
+    State.selClass=node.id;
+    setSelClass(node.id);
+    const d=OWL_NODES.find(n=>n.id===node.id);
+    if(d){openSlideForClass(d);}
+  },[]);
+  const onNodeDoubleClick=React.useCallback((_,node)=>{
+    if(node.id==='SettlementItem'){
+      setSettExpanded(v=>!v);
+      setExpandedMCodes(new Set());
+    } else if(settExpanded&&SETT_CODE_TABLE.some(mc=>mc.id===node.id)){
+      setExpandedMCodes(prev=>{
+        const next=new Set(prev);
+        if(next.has(node.id))next.delete(node.id);else next.add(node.id);
+        return next;
+      });
+    }
+  },[settExpanded]);
+  const onPaneClick=React.useCallback(()=>{
+    if(_sampleActive)return;
+    State.selClass=null;
+    setSelClass(null);
+    setRFNodes(prev=>prev.map(n=>({...n,data:{...n.data,onPath:false,highlighted:false,dimmed:false}})));
+    setRFEdges(prev=>prev.map(e=>({...e,
+      style:{...e.style,opacity:undefined},
+      labelStyle:{...(e.labelStyle||{}),opacity:1},
+      labelBgStyle:{...(e.labelBgStyle||{}),opacity:1}})));
+  },[]);
+  React.useEffect(()=>{
+    const btn=document.getElementById('btn-fit');
+    if(!btn)return;
+    const hf=()=>fitView({padding:.12,duration:400});
+    btn.addEventListener('click',hf);return()=>btn.removeEventListener('click',hf);
+  },[fitView]);
+  const rfStyle={width:'100%',height:'100%',background:'var(--g-bg)'};
+  return h(RF,{
+    nodes:rfNodes,edges:rfEdges,
+    nodeTypes,
+    onNodesChange,onEdgesChange,
+    onNodeClick,onNodeDoubleClick,onPaneClick,
+    fitView:true,fitViewOptions:{padding:.12},
+    minZoom:.05,maxZoom:3,
+    style:rfStyle,
+  },
+    h(Background,{gap:28,size:1,color:'#1a2332'}),
+    h(Controls,{showInteractive:false}),
+    h(MiniMap,{nodeColor:n=>{const d=DOMAINS[n.data?.domain];return d?d.color+'88':'#374151';},
+      maskColor:'#0a0f1eaa',style:{background:'#0d1117',border:'1px solid #1f2d40',borderRadius:8}}),
+  );
+}
+// ══════════════════════════════════════════════════════
+// §V8_S4 — React DOM 마운트
+// ══════════════════════════════════════════════════════
+let _rfRoot=null;
+function mountOntologyFlow(){
+  const el=document.getElementById('rf-root');
+  if(!el)return;
+  if(!_rfRoot)_rfRoot=ReactDOM.createRoot(el);
+  _rfRoot.render(h(ReactFlowProvider,null,h(OntologyFlowApp)));
+}
+// ══════════════════════════════════════════════════════
+// §V8_S5 — 슬라이드 라우터 + 이벤트 핸들러
+// ══════════════════════════════════════════════════════
+function openSlideForClass(d){
+  const isMCode=!!SETT_CODE_TABLE.find(x=>x.id===d.id);
+  const isSCode=!!SETT_CODE_TABLE.flatMap(mc=>mc.subs).find(s=>s.scode===d.id);
+  const isSettItem=d.id==='SettlementItem';
+  State.selClass=d.id;State.selSub=null;
+  const hint=document.getElementById('hint');if(hint)hint.style.opacity='0';
+  const pb=document.getElementById('path-btn');if(pb)pb.style.display='none';
+  if(isSettItem){_selMCode=null;_selSCode=null;openSettItemSlide(d);}
+  else if(isMCode){_selMCode=d.id;_selSCode=null;_selMCodeInst=null;_mcInstSearch='';openMCodeSlide(d);}
+  else if(isSCode){
+    const parentMC=SETT_CODE_TABLE.find(mc=>mc.subs.some(s=>s.scode===d.id));
+    _selMCode=parentMC?.id||null;_selSCode=d.id;_selScodeInst=null;openScodeSlide(d);
+  }
+  else{_selMCode=null;_selSCode=null;openSlide(d);}
+}
+function showSampleInstance(){
+  if(_sampleActive){clearSampleInstance();return;}
+  _sampleActive=true;
+  const btn=document.getElementById('btn-sample');if(btn)btn.classList.add('active');
+  State.selClass=null;State.selSub=null;
+  openSampleSlide();
+}
+function clearSampleInstance(){
+  _sampleActive=false;
+  const btn=document.getElementById('btn-sample');if(btn)btn.classList.remove('active');
+  updateGraph();
+}
+function fitG(){/* fitView called via React effect when btn-fit clicked */}
+function updateGraph(){/* no-op: handled in React effects */}
+function openSampleSlide(){
+  const ac='#f59e0b';
+  document.getElementById('slide-color-bar').style.background=ac;
+  const titleEl=document.getElementById('slide-title');
+  titleEl.textContent='나가입 — 정산 추적';titleEl.style.color=ac;
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  let det=document.getElementById('sl-sample-inst');
+  if(!det){det=document.createElement('div');det.id='sl-sample-inst';det.className='sl-content';document.getElementById('slide-body').appendChild(det);}
+  const stHtml=SAMPLE_INST.steps.map((step,i)=>{
+    const col=DOMAINS[step.domain]?.color||'#6b7280';
+    const vHtml=step.vals.map(([k,v])=>`<div class="inst-val-row"><span class="inst-val-key">${k}: </span><b>${v}</b></div>`).join('');
+    const arr=i<SAMPLE_INST.steps.length-1?`<div style="text-align:center;color:var(--txt4);font-size:16px;margin:-2px 0">↓</div>`:'';
+    return`<div class="inst-step"><div class="inst-node-badge" style="background:${col}22;border:1.5px solid ${col};color:${col}">${step.badge}</div>
+      <div class="inst-vals"><div style="font-size:10px;font-weight:800;color:${col};margin-bottom:4px">${step.label}</div>${vHtml}</div></div>${arr}`;
+  }).join('');
+  det.innerHTML=`<div style="padding:4px 0 10px;border-bottom:1px solid var(--bdr2);margin-bottom:10px">
+    <div style="font-size:10px;color:${ac};font-weight:700;letter-spacing:.04em;margin-bottom:2px">📋 인스턴스 정산 추적</div>
+    <div style="font-size:13px;font-weight:900;color:var(--txt)">나가입 고객 · 2026년 7월</div>
+    <div style="font-size:10px;color:var(--txt4);margin-top:3px">중분류: 가입자당도매대가 · 소코드: S0002</div></div>
+  ${stHtml}
+  <div class="inst-calc-box"><div class="inst-calc-title">🧮 최종 정산 계산</div>
+    <div class="inst-calc-eq">8,000원</div>
+    <div class="inst-calc-detail">기본료 10,000원 × 요율 80% × (활성 30일 / 월 30일)</div></div>`;
+  det.style.display='';document.getElementById('slide').classList.add('open');
+}
+function openSettItemSlide(nd){
+  const color='#34d399';
+  document.getElementById('slide-color-bar').style.background=color;
+  const titleEl=document.getElementById('slide-title');
+  titleEl.textContent='정산대상항목 — M코드 목록';titleEl.style.color=color;
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  let det=document.getElementById('sl-settitem');
+  if(!det){det=document.createElement('div');det.id='sl-settitem';det.className='sl-content';document.getElementById('slide-body').appendChild(det);}
+  const rows=SETT_CODE_TABLE.map(mc=>{
+    return `<tr style="border-bottom:1px solid #1f2d40">
+      <td style="padding:4px 8px;color:${color};font-weight:700">${mc.id}</td>
+      <td style="padding:4px 8px;color:#e6edf3">${mc.mid}</td>
+      <td style="padding:4px 8px;color:#9ca3af;font-size:10px">${mc.label} | S코드 ${mc.subs.length}개</td>
+    </tr>`;
+  }).join('');
+  det.innerHTML=`
+    <div style="color:#9ca3af;font-size:11px;margin-bottom:8px">정산요율(SettlementRate)과 정산기간(BillingPeriod)의 연결 대상. M코드를 클릭하면 S코드(소분류)가 펼쳐집니다.</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px">
+      <thead><tr style="background:#1f2d40">
+        <th style="padding:4px 8px;text-align:left;color:${color}">M코드</th>
+        <th style="padding:4px 8px;text-align:left;color:#e6edf3">명칭</th>
+        <th style="padding:4px 8px;text-align:left;color:#9ca3af">레이블 / S코드수</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  det.style.display='';document.getElementById('slide').classList.add('open');
+}
+function openMCodeSlide(nd){
+  const sc=SETT_CODE_TABLE.find(x=>x.id===nd.id);if(!sc)return;
+  const sc_color='#fb923c';
+  _mcFilterMVNO=null;_mcFilterPlan=null;_selMCodeInst=null;_mcInstSearch='';
+  document.getElementById('slide-color-bar').style.background=sc_color;
+  const titleEl=document.getElementById('slide-title');
+  titleEl.textContent=`${nd.id} — ${sc.mid}`;titleEl.style.color=sc_color;
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='flex';
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  document.getElementById('slide').classList.add('open');
+  document.querySelectorAll('#slide-tabs-mc .sl-tab').forEach(t=>t.classList.toggle('active',t.dataset.mctab==='mc-mvno'));
+  switchMCodeTab('mc-mvno');
+}
+function openScodeSlide(nd){
+  const sc_color='#a78bfa';
+  _mcFilterMVNO=null;_mcFilterPlan=null;_selScodeInst=null;_mcInstSearch='';
+  document.getElementById('slide-color-bar').style.background=sc_color;
+  const titleEl=document.getElementById('slide-title');
+  titleEl.textContent=`${nd.id} — ${nd.label}`;titleEl.style.color=sc_color;
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='flex';
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  document.getElementById('slide').classList.add('open');
+  document.querySelectorAll('#slide-tabs-mc .sl-tab').forEach(t=>t.classList.toggle('active',t.dataset.mctab==='mc-mvno'));
+  switchMCodeTab('mc-mvno');
+}
+function switchMCodeTab(tab){
+  document.querySelectorAll('#slide-tabs-mc .sl-tab').forEach(t=>t.classList.toggle('active',t.dataset.mctab===tab));
+  const map={'mc-info':'sl-mc-info','mc-mvno':'sl-mc-mvno','mc-plan':'sl-mc-plan','mc-inst':'sl-mc-inst','mc-trace':'sl-mc-trace'};
+  Object.values(map).forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const activeEl=document.getElementById(map[tab]);if(activeEl)activeEl.style.display='';
+  if(tab!=='mc-trace'){if(window.__setTracePath)window.__setTracePath(null);if(window.__setTraceSelId)window.__setTraceSelId(null);}
+  const nd=OWL_NODES.find(n=>n.id===(_selSCode||_selMCode));
+  const sc=SETT_CODE_TABLE.find(x=>x.id===(_selMCode||''));
+  if(tab==='mc-info'){const infoNd=nd||OWL_NODES.find(n=>n.id===_selMCode);if(infoNd)renderMCInfoTab(infoNd,sc);}
+  if(tab==='mc-mvno')renderUnitPriceMVNOTab();
+  if(tab==='mc-plan')renderUnitPricePlanTab();
+  if(tab==='mc-inst')renderMCInstTab();
+}
+document.querySelectorAll('#slide-tabs-mc .sl-tab').forEach(t=>t.onclick=()=>switchMCodeTab(t.dataset.mctab));
+function renderMCInfoTab(nd,sc){
+  const el=document.getElementById('sl-mc-info');if(!el)return;
+  const dom=DOMAINS[nd.domain]||{color:'#fb923c',label:'Settlement'};
+  const meta=CLASS_META[nd.id]||{props:[],desc:''};
+  const parents=OWL_LINKS.filter(l=>l.s===nd.id&&l.type==='sub');
+  const outLinks=OWL_LINKS.filter(l=>l.s===nd.id&&l.type==='obj');
+  const inLinks=OWL_LINKS.filter(l=>l.t===nd.id&&l.type==='obj');
+  let hh=`<span class="cls-badge" style="background:${dom.color}22;color:${dom.color};border:1px solid ${dom.color}44">${dom.label} 도메인</span>
+    <div class="cls-sub-lbl" style="margin-top:8px;font-size:12px;color:#c9d1d9">${meta.desc||nd.sub}</div>`;
+  if(meta.props.length) hh+=`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">데이터 속성</div>
+    <div>${meta.props.map(p=>`<span class="prop-chip">${p}</span>`).join('')}</div>`;
+  if(parents.length) hh+=`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">상위 클래스</div>
+    ${parents.map(l=>`<div class="rel-row"><span class="rel-arrow">↑</span><span style="color:#9ca3af">${l.t}</span></div>`).join('')}`;
+  if(outLinks.length) hh+=`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">출력 관계</div>
+    ${outLinks.map(l=>`<div class="rel-row"><span class="rel-arrow">→</span><span class="rel-lbl">${l.lbl}</span><span class="rel-target">${l.t}</span></div>`).join('')}`;
+  if(inLinks.length) hh+=`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">입력 관계</div>
+    ${inLinks.map(l=>`<div class="rel-row"><span class="rel-arrow">←</span><span class="rel-lbl">${l.lbl}</span><span class="rel-target">${l.s}</span></div>`).join('')}`;
+  if(sc) hh+=`<div style="margin-top:14px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">소분류 S코드 클래스</div>
+    ${sc.subs.map(s=>`<div class="rel-row" style="cursor:pointer" onclick="openSlideForClass(OWL_NODES.find(n=>n.id==='${s.scode}')||{id:'${s.scode}',domain:'scode',label:'${s.name}',sub:'${s.scode}'})">
+      <span class="rel-arrow" style="color:#a78bfa">◆</span><span style="color:#a78bfa">${s.scode}</span><span class="rel-target" style="margin-left:6px">${s.name}</span>
+    </div>`).join('')}`;
+  el.innerHTML=hh;
+}
+function renderUnitPriceMVNOTab(){
+  const el=document.getElementById('sl-mc-mvno');if(!el)return;
+  const mcId=_selSCode?SETT_CODE_TABLE.find(mc=>mc.subs.some(s=>s.scode===_selSCode))?.id:_selMCode;
+  const scId=_selSCode||null;
+  const color=scId?'#a78bfa':'#fb923c';
+  const data=getUnitPriceByMVNO(mcId,scId);
+  const grandSubs=data.reduce((a,d)=>a+d.subs,0);
+  const grandAmt=data.reduce((a,d)=>a+d.totalAmt,0);
+  const avgUnit=grandSubs?Math.round(grandAmt/grandSubs):0;
+  let hh=`<div style="font-size:10px;color:var(--txt4);font-weight:700;margin-bottom:10px">
+    🏢 MVNO별 가입자당 단가 <b style="color:${color}">${mcId||''} ${scId?'('+scId+')':''}</b>
+    <div style="font-size:9px;font-weight:400;margin-top:2px">행 클릭 → 해당 MVNO 인스턴스 조회</div>
+  </div>
+  <div style="background:#1a2332;border-radius:8px;overflow:hidden;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 55px 75px auto;font-size:10px;font-weight:700;color:var(--txt4);padding:6px 10px;border-bottom:1px solid #1f2d40">
+      <span>MVNO</span><span style="text-align:right">가입자</span><span style="text-align:right">가입자당단가</span><span style="text-align:right;color:var(--gold)">정산금액</span>
+    </div>
+    ${data.map(d=>{const isSel=_mcFilterMVNO===d.mvno;
+      return`<div class="mc-inst-item${isSel?' active':''}" style="cursor:pointer;padding:7px 10px;display:grid;grid-template-columns:1fr 55px 75px auto;align-items:center;border-bottom:1px solid #1f2d4044"
+        onclick="window._mcSelectMVNO('${d.mvno}')">
+        <span style="font-weight:700;font-size:11px">${d.mvno}</span>
+        <span style="text-align:right;font-size:11px">${d.subs.toLocaleString()}명</span>
+        <span style="text-align:right;font-weight:700;font-size:11px;color:${color};white-space:nowrap">${d.unitPrice.toLocaleString()}원</span>
+        <span style="text-align:right;font-weight:700;font-size:11px;color:var(--gold);white-space:nowrap">${fmtN(d.totalAmt)}</span>
+      </div>`;}).join('')}
+    <div style="display:grid;grid-template-columns:1fr 55px 75px auto;font-size:10px;font-weight:700;padding:7px 10px;background:#1f2d40;border-top:1px solid #334155">
+      <span style="color:var(--txt4)">합계</span><span style="text-align:right">${grandSubs.toLocaleString()}명</span>
+      <span style="text-align:right;color:${color};white-space:nowrap">평균 ${avgUnit.toLocaleString()}원</span>
+      <span style="text-align:right;color:var(--gold);white-space:nowrap">${fmtN(grandAmt)}</span>
+    </div>
+  </div><div style="font-size:10px;color:var(--txt4);text-align:right">* 시뮬레이션 샘플 데이터</div>`;
+  el.innerHTML=hh;
+}
+function renderUnitPricePlanTab(){
+  const el=document.getElementById('sl-mc-plan');if(!el)return;
+  const mcId=_selSCode?SETT_CODE_TABLE.find(mc=>mc.subs.some(s=>s.scode===_selSCode))?.id:_selMCode;
+  const scId=_selSCode||null;const color=scId?'#a78bfa':'#fb923c';
+  const data=getUnitPriceByPlan(mcId,scId);
+  const grandSubs=data.reduce((a,d)=>a+d.subs,0);
+  const grandAmt=data.reduce((a,d)=>a+d.totalAmt,0);
+  const avgUnit=grandSubs?Math.round(grandAmt/grandSubs):0;
+  let hh=`<div style="font-size:10px;color:var(--txt4);font-weight:700;margin-bottom:10px">
+    📦 요금제별 가입자당 단가 <b style="color:${color}">${mcId||''} ${scId?'('+scId+')':''}</b>
+  </div>
+  <div style="background:#1a2332;border-radius:8px;overflow:hidden;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:1fr 55px 75px auto;font-size:10px;font-weight:700;color:var(--txt4);padding:6px 10px;border-bottom:1px solid #1f2d40">
+      <span>요금제</span><span style="text-align:right">가입자</span><span style="text-align:right">가입자당단가</span><span style="text-align:right;color:var(--gold)">정산금액</span>
+    </div>
+    ${data.map(d=>{const isSel=_mcFilterPlan===d.planName;
+      return`<div class="mc-inst-item${isSel?' active':''}" style="cursor:pointer;padding:7px 10px;display:grid;grid-template-columns:1fr 55px 75px auto;align-items:center;border-bottom:1px solid #1f2d4044"
+        ondblclick="window._mcSelectPlan('${d.planName}')" onclick="window._mcHighlightPlan('${d.planName}')">
+        <span style="font-weight:700;font-size:11px">${d.planName}</span>
+        <span style="text-align:right;font-size:11px">${d.subs.toLocaleString()}명</span>
+        <span style="text-align:right;font-weight:700;font-size:11px;color:${color};white-space:nowrap">${d.unitPrice.toLocaleString()}원</span>
+        <span style="text-align:right;font-weight:700;font-size:11px;color:var(--gold);white-space:nowrap">${fmtN(d.totalAmt)}</span>
+      </div>`;}).join('')}
+    <div style="display:grid;grid-template-columns:1fr 55px 75px auto;font-size:10px;font-weight:700;padding:7px 10px;background:#1f2d40;border-top:1px solid #334155">
+      <span style="color:var(--txt4)">합계</span><span style="text-align:right">${grandSubs.toLocaleString()}명</span>
+      <span style="text-align:right;color:${color};white-space:nowrap">평균 ${avgUnit.toLocaleString()}원</span>
+      <span style="text-align:right;color:var(--gold);white-space:nowrap">${fmtN(grandAmt)}</span>
+    </div>
+  </div><div style="font-size:10px;color:var(--txt4);text-align:right">* 시뮬레이션 샘플 데이터</div>`;
+  el.innerHTML=hh;
+}
+function renderMCInstTab(){
+  const el=document.getElementById('sl-mc-inst');if(!el)return;
+  const mcId=_selSCode?SETT_CODE_TABLE.find(mc=>mc.subs.some(s=>s.scode===_selSCode))?.id:_selMCode;
+  const color=_selSCode?'#a78bfa':'#fb923c';
+  const insts=getSampleInstances(mcId,_mcFilterMVNO,_mcFilterPlan,_selSCode||null);
+  const filtered=_mcInstSearch?insts.filter(i=>i.name.includes(_mcInstSearch)||i.mvno.includes(_mcInstSearch)):insts;
+  const filterLabel=_mcFilterMVNO?`MVNO: ${_mcFilterMVNO}`:_mcFilterPlan?`요금제: ${_mcFilterPlan}`:'전체';
+  let hh=`<div style="margin-bottom:8px">
+    <div style="font-size:10px;color:var(--txt4);margin-bottom:4px">필터: <b style="color:${color}">${filterLabel}</b>
+      ${(_mcFilterMVNO||_mcFilterPlan)?`<span style="cursor:pointer;color:#60a5fa;margin-left:8px" onclick="window._mcClearFilter()">✕ 초기화</span>`:''}
+    </div>
+    <input class="srch-input" style="width:100%;box-sizing:border-box" placeholder="고객명·MVNO 검색" value="${_mcInstSearch}"
+      oninput="_mcInstSearch=this.value;renderMCInstTab()"/>
+  </div>
+  <div style="font-size:10px;color:var(--txt4);margin-bottom:8px">${filtered.length}명</div>`;
+  if(!filtered.length){hh+=`<div style="color:var(--txt4);text-align:center;padding:40px 0;font-size:12px">조건에 맞는 인스턴스 없음</div>`;}
+  else filtered.forEach(inst=>{
+    const isSel=(_selMCodeInst||_selScodeInst)===inst.id;
+    const amtColor=inst.settAmt<0?'var(--grn)':'var(--gold)';
+    hh+=`<div class="mc-inst-item${isSel?' active':''}" onclick="window._mcSelectInst('${inst.id}')" ondblclick="window._openTrace('${inst.id}')">
+      <div class="si-name">${inst.name}<span style="font-size:9px;color:var(--txt4);font-weight:400;margin-left:6px">더블클릭→정산과정</span></div>
+      <div class="si-meta"><span>${inst.mvno}</span><span class="bdg bo">${inst.planName}</span>
+        ${inst.scode?`<span class="bdg" style="background:#a78bfa22;color:#a78bfa">${inst.scode}</span>`:''}
+      </div>
+      <div class="si-amt" style="color:${amtColor}">${fmtN(inst.settAmt)}</div>
+      ${isSel?`<div class="mc-calc-box" style="margin-top:8px">
+        <div style="font-size:10px;font-weight:700;color:${color};margin-bottom:6px">🧮 정산 요약</div>
+        <table style="width:100%;font-size:10px">
+          <tr><td style="color:var(--txt4);padding:2px 0">MVNO</td><td style="text-align:right">${inst.mvno}</td></tr>
+          <tr><td style="color:var(--txt4);padding:2px 0">요금제</td><td style="text-align:right">${inst.planName}</td></tr>
+          ${inst.baseFee?`<tr><td style="color:var(--txt4);padding:2px 0">기본료/단가</td><td style="font-weight:700;text-align:right">${inst.baseFee.toLocaleString()}원</td></tr>`:''}
+          ${inst.activeDays?`<tr><td style="color:var(--txt4);padding:2px 0">활성일수</td><td style="text-align:right">${inst.activeDays}/${inst.totalDays}일</td></tr>`:''}
+        </table>
+        <div style="font-size:16px;font-weight:900;color:${amtColor};text-align:center;padding:6px 0;border-top:1px solid var(--bdr2);margin-top:6px">${fmtN(inst.settAmt)}</div>
+        ${inst.calc?`<div style="font-size:10px;color:var(--txt3);text-align:center;margin-top:4px">${inst.calc}</div>`:''}
+        <div style="text-align:center;margin-top:8px">
+          <button onclick="event.stopPropagation();window._openTrace('${inst.id}')"
+            style="padding:5px 16px;background:#fb923c22;border:1px solid #fb923c66;color:#fb923c;border-radius:6px;font-size:10px;cursor:pointer;font-weight:700">
+            📊 정산과정 트레이스 보기</button>
+        </div>
+      </div>`:''}
+    </div>`;
+  });
+  el.innerHTML=hh;
+}
+window._mcSelectMVNO=function(mvno){_mcFilterMVNO=(_mcFilterMVNO===mvno)?null:mvno;_mcFilterPlan=null;renderUnitPriceMVNOTab();if(_mcFilterMVNO)switchMCodeTab('mc-inst');};
+window._mcHighlightPlan=function(plan){_mcFilterPlan=(_mcFilterPlan===plan)?null:plan;renderUnitPricePlanTab();};
+window._mcSelectPlan=function(plan){_mcFilterPlan=plan;_mcFilterMVNO=null;renderUnitPricePlanTab();switchMCodeTab('mc-inst');};
+window._mcSelectInst=function(instId){if(_selSCode)_selScodeInst=(_selScodeInst===instId)?null:instId;else _selMCodeInst=(_selMCodeInst===instId)?null:instId;renderMCInstTab();};
+window._mcClearFilter=function(){_mcFilterMVNO=null;_mcFilterPlan=null;renderMCInstTab();renderUnitPriceMVNOTab();renderUnitPricePlanTab();};
+
+// ── 정산과정 트레이스
+const TRACE_PATHS={
+  M0001:[{nodeId:'Subscriber',icon:'👤',label:'가입자',color:'#3b82f6'},{nodeId:'SubscriberProduct',icon:'📋',label:'가입상품',color:'#3b82f6'},
+    {nodeId:'MVNOProduct',icon:'📦',label:'MVNO상품',color:'#10b981'},{nodeId:'MNOProduct',icon:'🏭',label:'MNO상품(모태)',color:'#10b981'},
+    {nodeId:'SettlementRate',icon:'💹',label:'정산요율',color:'#f59e0b'},{nodeId:'__MCODE__',icon:'●',label:'M코드 클래스',color:'#fb923c'},
+    {nodeId:'__SCODE__',icon:'◆',label:'S코드 클래스',color:'#a78bfa'},{nodeId:'BillingPeriod',icon:'📅',label:'정산기간',color:'#8b5cf6'},
+    {nodeId:'Invoice',icon:'🧾',label:'정산서',color:'#ec4899'}],
+  M0003:[{nodeId:'Subscriber',icon:'👤',label:'가입자',color:'#3b82f6'},{nodeId:'UsageData',icon:'📡',label:'사용량(과금)',color:'#06b6d4'},
+    {nodeId:'SettlementRate',icon:'💹',label:'정산요율',color:'#f59e0b'},{nodeId:'__MCODE__',icon:'●',label:'M코드 클래스',color:'#fb923c'},
+    {nodeId:'__SCODE__',icon:'◆',label:'S코드 클래스',color:'#a78bfa'},{nodeId:'BillingPeriod',icon:'📅',label:'정산기간',color:'#8b5cf6'},
+    {nodeId:'Invoice',icon:'🧾',label:'정산서',color:'#ec4899'}],
+  M0005:[{nodeId:'Subscriber',icon:'👤',label:'가입자',color:'#3b82f6'},{nodeId:'UsageData',icon:'📡',label:'사용량(총량)',color:'#06b6d4'},
+    {nodeId:'SettlementRate',icon:'💹',label:'정산요율',color:'#f59e0b'},{nodeId:'__MCODE__',icon:'●',label:'M코드 클래스',color:'#fb923c'},
+    {nodeId:'__SCODE__',icon:'◆',label:'S코드 클래스',color:'#a78bfa'},{nodeId:'BillingPeriod',icon:'📅',label:'정산기간',color:'#8b5cf6'},
+    {nodeId:'Invoice',icon:'🧾',label:'정산서',color:'#ec4899'}],
+  M0015:[{nodeId:'Subscriber',icon:'👤',label:'가입자',color:'#3b82f6'},{nodeId:'BillPayData',icon:'💳',label:'청구/수납내역',color:'#f97316'},
+    {nodeId:'SettlementRate',icon:'💹',label:'대행수수료',color:'#f59e0b'},{nodeId:'__MCODE__',icon:'●',label:'M코드 클래스',color:'#fb923c'},
+    {nodeId:'__SCODE__',icon:'◆',label:'S코드 클래스',color:'#a78bfa'},{nodeId:'BillingPeriod',icon:'📅',label:'정산기간',color:'#8b5cf6'},
+    {nodeId:'Invoice',icon:'🧾',label:'정산서',color:'#ec4899'}],
+};
+const TRACE_PATH_DEFAULT=[{nodeId:'Subscriber',icon:'👤',label:'가입자',color:'#3b82f6'},
+  {nodeId:'SettlementRate',icon:'💹',label:'정산요율',color:'#f59e0b'},
+  {nodeId:'__MCODE__',icon:'●',label:'M코드 클래스',color:'#fb923c'},
+  {nodeId:'__SCODE__',icon:'◆',label:'S코드 클래스',color:'#a78bfa'},
+  {nodeId:'BillingPeriod',icon:'📅',label:'정산기간',color:'#8b5cf6'},
+  {nodeId:'Invoice',icon:'🧾',label:'정산서',color:'#ec4899'}];
+function getTraceNodeValues(step,inst,mcId,scId){
+  const nid=step.nodeId;const mc=SETT_CODE_TABLE.find(x=>x.id===mcId);const sc=mc?.subs.find(s=>s.scode===scId);
+  if(nid==='Subscriber')return[['고객명',inst.name],['MVNO',inst.mvno],['상태','활성']];
+  if(nid==='SubscriberProduct')return[['요금제',inst.planName],['활성일수',`${inst.activeDays||30}/${inst.totalDays||30}일`],['M코드',mcId]];
+  if(nid==='MVNOProduct')return[['상품명',inst.planName],['기본료',(inst.baseFee||0).toLocaleString()+'원'],['MVNO',inst.mvno]];
+  if(nid==='MNOProduct')return[['모태상품명','LTE '+inst.planName],['MNO','KT'],['상품코드','KT-M-'+mcId]];
+  if(nid==='SettlementRate')return[['요율/단가',inst.rate&&inst.rate<1?Math.round((inst.rate||0.8)*100)+'%':(inst.rate||0).toLocaleString()+'원'],['유형',inst.rate&&inst.rate<1?'도매대가율':'종량단가']];
+  if(nid==='__SCODE__')return[['S코드',scId||inst.scode||'-'],['S코드명',sc?.name||'-'],['원본데이터',sc?.rawsrc||'-']];
+  if(nid==='__MCODE__')return[['M코드',mcId],['M코드명',mc?.mid||mcId],['소분류수',mc?mc.subs.length+'개':'1개']];
+  if(nid==='UsageData')return[['사용유형',mcId==='M0003'?'초과사용':'총량사용'],['사용량',(inst.excess||inst.used||0).toLocaleString()]];
+  if(nid==='BillPayData')return[['청구금액',(inst.baseFee||10000).toLocaleString()+'원'],['청구일','2025-06-25']];
+  if(nid==='BillingPeriod')return[['정산년월','2025년 06월'],['총일수','30일'],['상태','확정']];
+  if(nid==='Invoice')return[['정산서번호','INV-2025-06-'+mcId],['MVNO',inst.mvno],['정산금액',fmtN(inst.settAmt)],['상태','발행완료']];
+  return[['(값 없음)','-']];
+}
+let _traceInst=null;
+function renderTraceTab(inst){
+  _traceInst=inst;
+  const el=document.getElementById('sl-mc-trace');if(!el)return;
+  const mcId=inst.mcode||_selMCode;const scId=inst.scode||_selSCode;
+  const mc=SETT_CODE_TABLE.find(x=>x.id===mcId);
+  const path=(TRACE_PATHS[mcId]||TRACE_PATH_DEFAULT).map(step=>{
+    const id=step.nodeId==='__SCODE__'?(scId||'S코드'):step.nodeId==='__MCODE__'?mcId:step.nodeId;
+    return{...step,resolvedId:id};
+  });
+  let hh=`<div style="margin-bottom:12px">
+    <div style="font-size:11px;font-weight:700;color:var(--txt);margin-bottom:2px">📊 정산과정 트레이스</div>
+    <div style="font-size:10px;color:var(--txt4)"><b style="color:#fb923c">${inst.name}</b> · ${inst.mvno} · ${inst.planName}</div>
+    <div style="font-size:10px;color:var(--txt4);margin-top:2px">M코드: <b style="color:#fb923c">${mcId}</b> ${mc?'('+mc.mid+')':''} / S코드: <b style="color:#a78bfa">${scId||'-'}</b></div>
+  </div>`;
+  path.forEach((step,idx)=>{
+    const vals=getTraceNodeValues(step,inst,mcId,scId);const isLast=idx===path.length-1;
+    hh+=`<div class="trace-step" id="trace-step-${idx}" style="cursor:pointer"
+      onclick="window.__traceStepClick('${step.resolvedId}',${idx})">
+      <div><div class="trace-dot" style="background:${step.color}22;border-color:${step.color};color:${step.color}">${step.icon}</div>
+        ${!isLast?`<div style="width:2px;height:calc(100% - 30px);background:linear-gradient(${step.color}44,transparent);margin:2px auto 0;margin-left:14px"></div>`:''}
+      </div>
+      <div class="trace-body">
+        <div class="trace-node" style="color:${step.color}">${step.label} <span style="color:var(--txt4);font-size:9px">(${step.resolvedId})</span></div>
+        <div class="trace-vals">${vals.map(([k,v])=>`<div class="trace-val-row"><span style="color:var(--txt4)">${k}</span><span style="font-weight:700;color:var(--txt)">${v}</span></div>`).join('')}</div>
+      </div>
+    </div>`;
+  });
+  hh+=`<div class="trace-result">
+    <div style="font-size:10px;color:var(--txt4);margin-bottom:4px">최종 정산금액</div>
+    <div style="font-size:22px;font-weight:900;color:${inst.settAmt<0?'var(--grn)':'var(--gold)'}">${fmtN(inst.settAmt)}</div>
+    ${inst.calc?`<div style="font-size:10px;color:var(--txt3);margin-top:4px">${inst.calc}</div>`:''}
+  </div>`;
+  el.innerHTML=hh;
+  // 그래프에 정산과정 경로 전달 (S코드/M코드 클릭과 동일한 컨텍스트)
+  if(window.__setTracePath){
+    const ctxIds=scId?getScodeContext(scId):getMcodeContext(mcId);
+    window.__setTracePath(ctxIds);
+    window.__setTraceSelId(null);
+  }
+}
+window.__traceStepClick=function(nodeId,idx){
+  document.querySelectorAll('.trace-step').forEach((el,i)=>{
+    el.style.background=i===idx?'#1f2d4088':'';
+    el.style.borderLeft=i===idx?'3px solid #f59e0b':'3px solid transparent';
+    el.style.borderRadius=i===idx?'6px':'';
+  });
+  if(window.__setTraceSelId)window.__setTraceSelId(nodeId);
+};
+window._openTrace=function(instId){
+  const mcId=_selSCode?SETT_CODE_TABLE.find(mc=>mc.subs.some(s=>s.scode===_selSCode))?.id:_selMCode;
+  const insts=getSampleInstances(mcId,_mcFilterMVNO,_mcFilterPlan,_selSCode||null);
+  const inst=insts.find(i=>i.id===instId)||SETT_INSTANCES.find(i=>i.id===instId);
+  if(!inst)return;
+  const tabEl=document.getElementById('tab-trace');if(tabEl)tabEl.style.display='';
+  renderTraceTab(inst);switchMCodeTab('mc-trace');
+};
+function closeSlide(){
+  document.getElementById('slide').classList.remove('open');
+  if(_sampleActive)clearSampleInstance();
+  document.getElementById('slide-tabs').style.display='';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  _selMCode=null;_selSCode=null;_selMCodeInst=null;_selScodeInst=null;
+  _mcInstSearch='';_mcFilterMVNO=null;_mcFilterPlan=null;_traceInst=null;
+  if(window.__setTracePath)window.__setTracePath(null);
+  if(window.__setTraceSelId)window.__setTraceSelId(null);
+  const tabTrace=document.getElementById('tab-trace');if(tabTrace)tabTrace.style.display='none';
+  if(currentView==='ontology'){
+    State.selClass=null;State.selSub=null;State.pathAnim=false;
+    const pb=document.getElementById('path-btn');if(pb)pb.style.display='none';
+    const hint=document.getElementById('hint');if(hint)hint.style.opacity='1';
+  }
+  selMVNO=null;
+}
+function openSlide(d){
+  const dom=DOMAINS[d.domain];
+  document.getElementById('slide-color-bar').style.background=dom.color;
+  const titleEl=document.getElementById('slide-title');titleEl.textContent=d.label;titleEl.style.color=dom.color;
+  document.getElementById('slide').classList.add('open');
+  document.getElementById('slide-tabs').style.display='flex';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  renderSlideInfo(d);renderSlideMVNO();renderSlideProd();renderSlideInstances(d);renderSlideCalc();renderSlideWhatif();
+  switchSlideTab('info');
+}
+(function initSlideResize(){
+  const handle=document.getElementById('slide-resize');
+  const slide=document.getElementById('slide');
+  let dragging=false,startX=0,startW=0;
+  handle.addEventListener('mousedown',e=>{dragging=true;startX=e.clientX;startW=slide.offsetWidth;handle.classList.add('dragging');document.body.style.userSelect='none';document.body.style.cursor='ew-resize';e.preventDefault();});
+  document.addEventListener('mousemove',e=>{if(!dragging)return;const delta=startX-e.clientX;const newW=Math.min(800,Math.max(300,startW+delta));slide.style.width=newW+'px';slide.style.transition='none';});
+  document.addEventListener('mouseup',()=>{if(!dragging)return;dragging=false;handle.classList.remove('dragging');document.body.style.userSelect='';document.body.style.cursor='';slide.style.transition='';});
+})();
+function renderSlideInfo(d){
+  const dom=DOMAINS[d.domain];const meta=CLASS_META[d.id]||{props:[],desc:''};
+  const outLinks=OWL_LINKS.filter(l=>l.s===d.id&&l.type==='obj');
+  const inLinks=OWL_LINKS.filter(l=>l.t===d.id&&l.type==='obj');
+  const parents=OWL_LINKS.filter(l=>l.s===d.id&&l.type==='sub');
+  document.getElementById('sl-info').innerHTML=`
+    <span class="cls-badge" style="background:${dom.color}22;color:${dom.color};border:1px solid ${dom.color}44">${dom.label} 도메인</span>
+    ${d.abstract?'<span class="cls-badge" style="background:#fbbf2422;color:#fbbf24;border:1px solid #fbbf2444;margin-left:4px">추상 클래스</span>':''}
+    <div class="cls-sub-lbl" style="margin-top:8px;font-size:12px;color:#c9d1d9">${meta.desc||d.sub}</div>
+    ${meta.props.length?`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">데이터 속성</div>
+    <div>${meta.props.map(p=>`<span class="prop-chip">${p}</span>`).join('')}</div>`:''}
+    ${parents.length?`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">상위 클래스</div>
+    ${parents.map(l=>`<div class="rel-row"><span class="rel-arrow">↑</span><span style="color:#9ca3af">${l.t}</span></div>`).join('')}`:''}
+    ${outLinks.length?`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">출력 관계 (→)</div>
+    ${outLinks.map(l=>`<div class="rel-row"><span class="rel-arrow">→</span><span class="rel-lbl">${l.lbl}</span><span class="rel-target">${l.t}</span></div>`).join('')}`:''}
+    ${inLinks.length?`<div style="margin-top:12px;font-size:10px;color:#6b7280;font-weight:700;margin-bottom:5px">입력 관계 (←)</div>
+    ${inLinks.map(l=>`<div class="rel-row"><span class="rel-arrow">←</span><span class="rel-lbl">${l.lbl}</span><span class="rel-target">${l.s}</span></div>`).join('')}`:''}`;
+}
+function calcAllRes(){
+  return SUBSCRIBERS.map(sub=>{const prod=PRODUCTS.find(p=>p.id===sub.productId);const res=calcAllItems(sub,prod,RATES[sub.productId],BILLING);return{sub,prod,res};});
+}
+function renderSlideMVNO(){
+  const allRes=calcAllRes();const grandAmts=new Array(39).fill(0);
+  allRes.forEach(({res})=>res.amounts.forEach((a,i)=>{grandAmts[i]+=a;}));
+  const grandTotal=grandAmts.reduce((a,b)=>a+b,0);const grandNeg=grandAmts.filter(a=>a<0).reduce((a,b)=>a+b,0);
+  let hh=`<div class="mvno-grand">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:16px">🏢</span>
+      <div><div style="font-size:13px;font-weight:800;color:var(--txt)">MVNO_ABC</div>
+        <div style="font-size:10px;color:var(--txt4)">2025년 6월 정산 (${BILLING.totalDays}일)</div></div>
+    </div>
+    <div class="mvno-stat-grid">
+      <div class="mvno-stat"><div class="mvno-stat-val">${SUBSCRIBERS.length}명</div><div class="mvno-stat-lbl">총 가입자</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val">${PRODUCTS.length}종</div><div class="mvno-stat-lbl">운용 요금제</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val" style="color:var(--grn)">${fmtN(grandNeg)}</div><div class="mvno-stat-lbl">공제·인센티브</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val">${fmtN(grandTotal)}</div><div class="mvno-stat-lbl">순 정산 합계</div></div>
+    </div></div>
+  <div style="font-size:10px;color:var(--txt4);font-weight:700;margin:12px 0 6px">📊 정산항목별 전체 합계</div>`;
+  SETT_CATS.forEach(cat=>{
+    const catDefs=SETT_DEFS.filter(d=>d.cat===cat.id);
+    const catAmts=catDefs.map(d=>{const i=parseInt(d.id.slice(1))-1;return grandAmts[i];});
+    const catTotal=catAmts.reduce((a,b)=>a+b,0);if(catAmts.every(a=>a===0))return;
+    hh+=`<div class="cat-hdr" style="background:${cat.color}18;border-left:3px solid ${cat.color}">
+      <span class="cat-hdr-lbl" style="color:${cat.color}">${cat.name}</span>
+      <span class="cat-hdr-amt">${fmt(catTotal)}</span></div>`;
+    catDefs.forEach((def,i)=>{const amt=catAmts[i];if(amt===0)return;
+      hh+=`<div class="mvno-sum-row"><span class="mvno-sum-lbl">${def.name}</span>
+        <span class="mvno-sum-val${amt<0?' neg-amt':''}">${fmt(amt)}</span></div>`;});
+  });
+  hh+=`<div style="display:flex;justify-content:space-between;padding:10px 0;margin-top:8px;border-top:1px solid var(--bdr2)">
+    <span style="font-size:11px;font-weight:700;color:var(--acc2)">MVNO_ABC 총 정산</span>
+    <span style="font-size:14px;font-weight:800;color:var(--gold)">${fmtN(grandTotal)}</span></div>`;
+  document.getElementById('sl-mvno').innerHTML=hh;
+}
+window.renderSlideMVNO=renderSlideMVNO;
+function renderSlideProd(){
+  const pf=Srch.mvno.prod;const cf=Srch.mvno.cat;const allRes=calcAllRes();
+  let hh=`<div class="srch-bar">
+    <select class="srch-select" onchange="Srch.mvno.prod=this.value;renderSlideProd()">
+      <option value="ALL" ${pf==='ALL'?'selected':''}>전체 요금제</option>
+      ${PRODUCTS.map(p=>`<option value="${p.id}" ${pf===p.id?'selected':''}>${p.name}</option>`).join('')}
+    </select>
+    <select class="srch-select" onchange="Srch.mvno.cat=this.value;renderSlideProd()">
+      <option value="ALL" ${cf==='ALL'?'selected':''}>전체 항목</option>
+      ${SETT_CATS.map(c=>`<option value="${c.id}" ${cf===c.id?'selected':''}>${c.name}</option>`).join('')}
+    </select></div>`;
+  const prodList=pf==='ALL'?PRODUCTS:PRODUCTS.filter(p=>p.id===pf);
+  prodList.forEach(prod=>{
+    const subsOfProd=allRes.filter(r=>r.prod.id===prod.id);if(!subsOfProd.length)return;
+    const pAmts=new Array(39).fill(0);subsOfProd.forEach(({res})=>res.amounts.forEach((a,i)=>{pAmts[i]+=a;}));
+    const pTotal=pAmts.reduce((a,b)=>a+b,0);const pid=prod.id;
+    hh+=`<div class="prod-section">
+      <div class="prod-hdr" onclick="toggleProd('${pid}')">
+        <div><div class="prod-hdr-name">${prod.name}</div>
+          <div class="prod-hdr-meta">가입자 ${subsOfProd.length}명 · ${prod.type==='bundled'?'결합':'음성'}상품</div></div>
+        <div class="prod-hdr-amt">${fmtN(pTotal)}</div></div>
+      <div class="prod-body" id="pb-${pid}">`;
+    const catsToShow=cf==='ALL'?SETT_CATS:SETT_CATS.filter(c=>c.id===cf);
+    catsToShow.forEach(cat=>{
+      const catDefs=SETT_DEFS.filter(d=>d.cat===cat.id);
+      const catAmts=catDefs.map(d=>{const i=parseInt(d.id.slice(1))-1;return pAmts[i];});
+      const catTotal=catAmts.reduce((a,b)=>a+b,0);if(catAmts.every(a=>a===0))return;
+      hh+=`<div class="cat-hdr" style="background:${cat.color}18;border-left:3px solid ${cat.color}">
+        <span class="cat-hdr-lbl" style="color:${cat.color}">${cat.name}</span>
+        <span class="cat-hdr-amt">${fmt(catTotal)}</span></div>`;
+      catDefs.forEach((def,i)=>{const amt=catAmts[i];if(amt===0)return;
+        hh+=`<div class="mvno-sum-row"><span class="mvno-sum-lbl">${def.name}</span>
+          <span class="mvno-sum-val${amt<0?' neg-amt':''}">${fmt(amt)}</span></div>`;});
+    });
+    hh+=`</div></div>`;
+  });
+  document.getElementById('sl-prod').innerHTML=hh;
+  prodList.forEach(p=>{const el=document.getElementById('pb-'+p.id);if(el&&prodList.length===1)el.classList.add('open');});
+}
+window.renderSlideProd=renderSlideProd;
+window.toggleProd=function(id){const el=document.getElementById('pb-'+id);if(el)el.classList.toggle('open');};
+function renderSlideInstances(d){
+  const mcDef=SETT_CODE_TABLE.find(x=>x.id===d.id);
+  if(mcDef){
+    let hh=`<div style="font-size:10px;font-weight:700;color:#ef4444;margin-bottom:10px">● ${d.id} (${mcDef.mid}) 소분류 S코드 클래스 ${mcDef.subs.length}개</div>`;
+    mcDef.subs.forEach(s=>{
+      const insts=SETT_INSTANCES.filter(i=>i.scode===s.scode);
+      hh+=`<div class="mc-inst-item" style="cursor:pointer" onclick="openSlideForClass(OWL_NODES.find(n=>n.id==='${s.scode}')||{id:'${s.scode}',domain:'scode',label:'${s.name}',sub:'${s.scode}'})">
+        <div class="si-name" style="color:#f87171">◆ ${s.scode}</div>
+        <div class="si-meta"><span>${s.name}</span><span class="bdg" style="background:#ef444422;color:#ef4444">S코드</span>
+          ${insts.length?`<span class="bdg" style="background:#3fb95022;color:#3fb950">${insts.length}건</span>`:''}
+        </div><div style="font-size:9.5px;color:var(--txt4);margin-top:4px">원본: ${s.rawsrc}</div>
+      </div>`;});
+    document.getElementById('sl-instances').innerHTML=hh;return;
+  }
+  const scEntry=SETT_CODE_TABLE.flatMap(mc=>mc.subs).find(s=>s.scode===d.id);
+  if(scEntry){
+    const mcEntry=SETT_CODE_TABLE.find(mc=>mc.subs.some(s=>s.scode===d.id));
+    const insts=SETT_INSTANCES.filter(i=>i.scode===d.id);
+    let hh=`<div style="padding:6px 0 10px;border-bottom:1px solid var(--bdr2);margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:#f87171">◆ S코드 클래스 인스턴스</div>
+      <div style="font-size:13px;font-weight:800;color:var(--txt);margin-top:2px">${d.id} — ${d.label}</div>
+      <div style="font-size:9.5px;color:var(--txt4);margin-top:3px">원본: ${scEntry.rawsrc} · 상위: <b style="color:#ef4444">${mcEntry?.id}</b></div>
+    </div>`;
+    if(!insts.length){hh+=`<div style="color:var(--txt4);text-align:center;padding:40px 0;font-size:12px">인스턴스 없음</div>`;}
+    else insts.forEach(inst=>{
+      const isSel=_selScodeInst===inst.id;
+      hh+=`<div class="mc-inst-item${isSel?' active':''}" onclick="_selScodeInst=(_selScodeInst==='${inst.id}')?null:'${inst.id}';renderSlideInstances(OWL_NODES.find(n=>n.id===State.selClass)||{id:''})">
+        <div class="si-name">${inst.name}</div>
+        <div class="si-meta"><span>${inst.mvno}</span><span class="bdg bo">${inst.planName}</span></div>
+        <div class="si-amt">${fmtN(inst.settAmt)}</div>
+      </div>`;});
+    document.getElementById('sl-instances').innerHTML=hh;return;
+  }
+  const subs=CLASS_SUBS[d.id];
+  if(!subs||!subs.length){document.getElementById('sl-instances').innerHTML=`<div style="color:#6b7280;text-align:center;padding:40px 0;font-size:13px"><div style="font-size:32px;margin-bottom:8px">∅</div>직접 인스턴스 없음</div>`;return;}
+  const{text,esim,prepaid,excess}=Srch.inst;
+  let filtered=subs.filter(sid=>{
+    const sub=SUBSCRIBERS.find(s=>s.id===sid);const prod=PRODUCTS.find(p=>p.id===sub.productId);
+    if(text&&!sub.name.toLowerCase().includes(text.toLowerCase())&&!prod.name.toLowerCase().includes(text.toLowerCase()))return false;
+    if(esim&&!sub.isESIM)return false;if(prepaid&&!sub.isPrepaid)return false;
+    if(excess){const res=calcAllItems(sub,prod,RATES[sub.productId],BILLING);if(!res.excV&&!res.excVid&&!res.excSMS&&!res.excData)return false;}
+    return true;
+  });
+  let hh=`<div class="srch-bar" style="flex-wrap:wrap;gap:4px">
+    <input class="srch-input" placeholder="가입자명·요금제 검색" value="${text}"
+      oninput="Srch.inst.text=this.value;renderSlideInstances(OWL_NODES.find(n=>n.id===State.selClass)||{id:''})"/>
+    <span class="srch-chip${esim?' on':''}" onclick="Srch.inst.esim=!Srch.inst.esim;renderSlideInstances(OWL_NODES.find(n=>n.id===State.selClass)||{id:''})">eSIM</span>
+    <span class="srch-chip${prepaid?' on':''}" onclick="Srch.inst.prepaid=!Srch.inst.prepaid;renderSlideInstances(OWL_NODES.find(n=>n.id===State.selClass)||{id:''})">선불</span>
+    <span class="srch-chip${excess?' on':''}" onclick="Srch.inst.excess=!Srch.inst.excess;renderSlideInstances(OWL_NODES.find(n=>n.id===State.selClass)||{id:''})">초과있음</span>
+    <span style="font-size:10px;color:#6b7280;margin-left:auto">${filtered.length}/${subs.length}명</span></div>`;
+  if(!filtered.length){hh+=`<div style="color:#6b7280;text-align:center;padding:30px 0;font-size:12px">검색 결과 없음</div>`;}
+  filtered.forEach(sid=>{
+    const sub=SUBSCRIBERS.find(s=>s.id===sid);const prod=PRODUCTS.find(p=>p.id===sub.productId);
+    const res=calcAllItems(sub,prod,RATES[sub.productId],BILLING);const excAny=res.excV>0||res.excVid>0||res.excSMS>0||res.excData>0;
+    hh+=`<div class="sub-item${State.selSub===sid?' active':''}" onclick="onSubSel('${sid}')">
+      <div class="si-name">${sub.name}</div>
+      <div class="si-meta"><span>${prod.name}</span><span class="bdg bo">가입: ${sub.joinDate}</span><span class="bdg bb">활성 ${res.days}일</span>
+        ${sub.isESIM?'<span class="bdg" style="background:#7c3aed22;color:#a78bfa">eSIM</span>':''}
+        ${sub.isPrepaid?'<span class="bdg" style="background:#f59e0b22;color:#f59e0b">선불</span>':''}
+        ${excAny?`<span class="bdg br">초과있음</span>`:''}
+      </div><div class="si-amt">${fmtN(res.total)}</div></div>`;
+  });
+  document.getElementById('sl-instances').innerHTML=hh;
+}
+function renderSlideCalc(){
+  if(!State.selSub){document.getElementById('sl-calc').innerHTML=`<div style="color:#6b7280;text-align:center;padding:40px 0;font-size:13px"><div style="font-size:32px;margin-bottom:8px">👆</div>인스턴스 탭에서 가입자를 선택하세요</div>`;return;}
+  const sub=SUBSCRIBERS.find(s=>s.id===State.selSub);const prod=PRODUCTS.find(p=>p.id===sub.productId);
+  const rate=RATES[sub.productId];const res=calcAllItems(sub,prod,rate,BILLING);
+  let hh=`<div style="margin-bottom:10px">
+    <div style="font-weight:700;font-size:13px;color:#e6edf3">${sub.name}</div>
+    <div style="font-size:11px;color:#6b7280">${prod.name} · 가입: ${sub.joinDate} · 활성 ${res.days}일</div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      ${sub.isESIM?'<span class="bdg" style="background:#7c3aed22;color:#a78bfa;font-size:9px">eSIM</span>':''}
+      ${sub.isPrepaid?'<span class="bdg" style="background:#f59e0b22;color:#f59e0b;font-size:9px">선불</span>':''}
+      <span style="font-size:9px;color:#6b7280">RS기준: ${fmtN(res.rsBase)}</span>
+    </div></div>`;
+  SETT_CATS.forEach(cat=>{
+    const catDefs=SETT_DEFS.filter(d=>d.cat===cat.id);
+    const catAmts=catDefs.map(d=>{const i=parseInt(d.id.slice(1))-1;return res.amounts[i];});
+    const catTotal=catAmts.reduce((a,b)=>a+b,0);if(!catAmts.some(a=>a!==0))return;
+    hh+=`<div class="cat-hdr" style="background:${cat.color}18;border-left:3px solid ${cat.color}">
+      <span class="cat-hdr-lbl" style="color:${cat.color}">${cat.name}</span>
+      <span class="cat-hdr-amt">${fmt(catTotal)}</span></div>`;
+    catDefs.forEach((def,i)=>{const amt=catAmts[i];
+      hh+=`<div class="det-row${amt===0?' det-row-zero':''}">
+        <span class="det-lbl">${def.name}</span>
+        <span class="det-val${amt<0?' neg-amt':''}">${fmt(amt)}</span></div>`;});
+  });
+  hh+=`<div class="det-tot"><span class="det-tot-lbl">총 정산액</span><span class="det-tot-val">${fmtN(res.total)}</span></div>`;
+  document.getElementById('sl-calc').innerHTML=hh;
+}
+function renderSlideWhatif(){
+  if(!State.selSub){document.getElementById('sl-whatif').innerHTML=`<div style="color:#6b7280;text-align:center;padding:40px 0;font-size:13px"><div style="font-size:32px;margin-bottom:8px">👆</div>인스턴스 탭에서 가입자를 선택하세요</div>`;return;}
+  const sub=SUBSCRIBERS.find(s=>s.id===State.selSub);const prod=PRODUCTS.find(p=>p.id===sub.productId);
+  const baseRate=RATES[sub.productId];const baseRes=calcAllItems(sub,prod,baseRate,BILLING);
+  const rOv={};
+  if(wiOv.wholesaleRate!==undefined)rOv.wholesaleRate=wiOv.wholesaleRate;
+  if(wiOv.billingAgencyFee!==undefined)rOv.billingAgencyFee=wiOv.billingAgencyFee;
+  if(wiOv.collectionFee!==undefined)rOv.collectionFee=wiOv.collectionFee;
+  if(wiOv.excessVoiceRate!==undefined)rOv.excessVoiceRate=wiOv.excessVoiceRate;
+  const sOv={};
+  if(wiOv.joinDate!==undefined)sOv.joinDate=wiOv.joinDate;
+  if(wiOv.usedVoice!==undefined)sOv.usedVoice=wiOv.usedVoice;
+  if(wiOv.usedData!==undefined)sOv.usedData=wiOv.usedData;
+  if(Object.keys(sOv).length>0)rOv._sub=sOv;
+  const scRes=calcAllItems(sub,prod,baseRate,BILLING,rOv);
+  const changed=SETT_DEFS.filter((_,i)=>Math.abs(baseRes.amounts[i]-scRes.amounts[i])>0.5);
+  const totalDiff=scRes.total-baseRes.total;
+  const cr=wiOv.wholesaleRate??baseRate.wholesaleRate;
+  const cj=wiOv.joinDate??sub.joinDate;
+  const cv=wiOv.usedVoice!==undefined?wiOv.usedVoice:sub.usedVoice;
+  const cd=wiOv.usedData!==undefined?wiOv.usedData:sub.usedData;
+  const cbf=wiOv.billingAgencyFee??baseRate.billingAgencyFee;
+  const ccf=wiOv.collectionFee??baseRate.collectionFee;
+  const cev=wiOv.excessVoiceRate??baseRate.excessVoiceRate;
+  document.getElementById('sl-whatif').innerHTML=`
+    <div style="margin-bottom:10px;font-weight:700;font-size:12px;color:#a78bfa">⚡ What-if — ${sub.name}</div>
+    <div class="wi-lbl">① 기본료 도매수수료율</div>
+    <div class="wi-row"><input type="range" class="wi-slider" min="10" max="80" step="1" value="${Math.round(cr*100)}"
+      oninput="wiOv.wholesaleRate=this.value/100;renderSlideWhatif()"/>
+      <span class="wi-val">${Math.round(cr*100)}%</span></div>
+    <div class="wi-lbl">가입일</div>
+    <input type="date" class="wi-input" value="${cj}" min="2025-06-01" max="2025-06-30"
+      style="margin-bottom:8px" onchange="wiOv.joinDate=this.value;renderSlideWhatif()"/>
+    <div class="wi-lbl">음성 사용량 (분)</div>
+    <input type="number" class="wi-input" value="${cv}" min="0" style="margin-bottom:8px"
+      oninput="wiOv.usedVoice=+this.value;renderSlideWhatif()"/>
+    <div class="wi-lbl">데이터 사용량 (GB)</div>
+    <input type="number" class="wi-input" value="${cd}" min="0" step="1" style="margin-bottom:8px"
+      oninput="wiOv.usedData=+this.value;renderSlideWhatif()"/>
+    <div class="wi-lbl">청구대행수수료 (원/건)</div>
+    <div class="wi-row"><input type="range" class="wi-slider" min="0" max="500" step="10" value="${cbf}"
+      oninput="wiOv.billingAgencyFee=+this.value;renderSlideWhatif()"/>
+      <span class="wi-val">${cbf}</span></div>
+    <div class="wi-lbl">수납대행수수료 (원/건)</div>
+    <div class="wi-row"><input type="range" class="wi-slider" min="0" max="500" step="10" value="${ccf}"
+      oninput="wiOv.collectionFee=+this.value;renderSlideWhatif()"/>
+      <span class="wi-val">${ccf}</span></div>
+    <div class="wi-lbl">음성 초과종량 단가 (원/분)</div>
+    <div class="wi-row"><input type="range" class="wi-slider" min="0" max="10" step="0.1" value="${cev}"
+      oninput="wiOv.excessVoiceRate=+this.value;renderSlideWhatif()"/>
+      <span class="wi-val">${cev.toFixed(1)}</span></div>
+    ${changed.length>0?`<div style="font-size:10px;color:#6b7280;margin:10px 0 4px;font-weight:700">변경된 항목 ${changed.length}개</div>
+    <table class="cmp-table"><thead><tr><th>항목</th><th>현재</th><th>시나리오</th><th>차이</th></tr></thead><tbody>
+    ${changed.map(def=>{const i=parseInt(def.id.slice(1))-1;const b=baseRes.amounts[i];const s2=scRes.amounts[i];const d2=s2-b;
+      return`<tr><td style="font-size:9.5px">${def.name}</td><td>${fmt(b)}</td><td>${fmt(s2)}</td>
+        <td class="${d2>0?'dn':d2<0?'dp':''}">${d2===0?'—':(d2>0?'+':'')+fmt(d2)}</td></tr>`;}).join('')}
+    <tr style="font-weight:700;background:#1f2d40"><td>합계</td><td>${fmtN(baseRes.total)}</td><td>${fmtN(scRes.total)}</td>
+      <td class="${totalDiff>0?'dn':totalDiff<0?'dp':''}">${totalDiff===0?'—':(totalDiff>0?'+':'')+fmt(totalDiff)}</td></tr>
+    </tbody></table>`
+    :'<div style="color:#3fb950;text-align:center;padding:15px;font-size:12px">⚠️ 아직 변경된 항목이 없습니다</div>'}
+    <button class="wi-btn wi-btn-reset" style="margin-top:8px" onclick="wiOv={};renderSlideWhatif()">초기화</button>`;
+}
+window.renderSlideWhatif=renderSlideWhatif;
+window.onSubSel=function(id){
+  State.selSub=id;wiOv={};
+  const clsNode=OWL_NODES.find(n=>n.id===State.selClass)||{id:''};
+  renderSlideInstances(clsNode);renderSlideCalc();renderSlideWhatif();
+  const pb=document.getElementById('path-btn');if(pb)pb.style.display='block';
+  switchSlideTab('calc');
+};
+function switchSlideTab(tab){
+  document.querySelectorAll('.sl-tab').forEach(t=>t.classList.toggle('active',t.dataset.stab===tab));
+  document.querySelectorAll('.sl-content').forEach(e=>e.style.display='none');
+  const el=document.getElementById('sl-'+tab);if(el)el.style.display='';
+  if(tab==='whatif')renderSlideWhatif();
+  if(tab==='mvno')renderSlideMVNO();
+  if(tab==='prod')renderSlideProd();
+}
+document.querySelectorAll('#slide-tabs .sl-tab').forEach(t=>t.onclick=()=>switchSlideTab(t.dataset.stab));
+// ── 필터·버튼 ─────────────────────────────────────────
+document.getElementById('btn-all').onclick=function(){document.querySelectorAll('.hb').forEach(b=>b.classList.remove('active'));this.classList.add('active');State.showSub=true;State.showObj=true;};
+document.getElementById('btn-cls').onclick=function(){document.querySelectorAll('.hb').forEach(b=>b.classList.remove('active'));this.classList.add('active');State.showSub=true;State.showObj=false;};
+document.getElementById('btn-obj').onclick=function(){document.querySelectorAll('.hb').forEach(b=>b.classList.remove('active'));this.classList.add('active');State.showSub=false;State.showObj=true;};
+document.getElementById('btn-reset').onclick=()=>closeSlide();
+document.getElementById('cnt-nodes').textContent=OWL_NODES.length;
+document.getElementById('cnt-links').textContent=OWL_LINKS.length;
+// 툴팁
+const tip=document.getElementById('gtip');
+function showTip(e,d){const dom=DOMAINS[d.domain];const inc=(CLASS_SUBS[d.id]||[]).length;
+  tip.innerHTML=`<div style="font-weight:700;color:${dom?dom.color:'#60a5fa'}">${d.label}</div>
+    <div style="color:#9ca3af">${d.sub}${d.abstract?' · 추상':''}</div>
+    ${inc?`<div style="color:#3fb950;margin-top:3px">관련 가입자 ${inc}명</div>`:''}`;
+  tip.style.display='block';}
+function hideTip(){tip.style.display='none';}
+// ══════════════════════════════════════════════════════
+// §V8_S6 — MVNO 시뮬레이션 데이터 + 차트 + 트리
+// ══════════════════════════════════════════════════════
+function seededRng(seed){let s=seed>>>0;return()=>{s=(Math.imul(1664525,s)+1013904223)>>>0;return s/4294967296;};}
+const MVNO_SUFFIXES=['알뜰폰','스마트텔','모바일넷','링크통신','디지털폰','에코텔','넥스트모바일','스피드텔','클라우드통신','원패스'];
+const MVNO_DATA=(()=>{const d=[];
+  for(let i=1;i<=50;i++){
+    const r=seededRng(i*31337+999);const id=`MVNO_${String(i).padStart(3,'0')}`;
+    const nm=MVNO_SUFFIXES[(i-1)%MVNO_SUFFIXES.length]+' '+String.fromCharCode(64+Math.ceil(i/MVNO_SUFFIXES.length));
+    const subCount=Math.floor(r()*5000)+100;const prodCount=Math.floor(r()*5)+1;const cats={};
+    SETT_CATS.forEach((cat,ci)=>{const r2=seededRng(i*777+ci*113+42);const base=r2()*15000000+500000;
+      cats[cat.id]=cat.id==='rs'?-Math.round(base*.25/1000)*1000:Math.round(base/1000)*1000;});
+    d.push({id,name:nm,subCount,prodCount,cats,total:Object.values(cats).reduce((a,b)=>a+b,0)});
+  }return d;
+})();
+const MVNO_DATA_PP=(()=>{const d=[];
+  for(let i=1;i<=50;i++){
+    const r=seededRng(i*31337+555);const m=MVNO_DATA[i-1];const cats={};
+    SETT_CATS.forEach((cat,ci)=>{const r2=seededRng(i*555+ci*77+11);const base=r2()*13000000+400000;
+      cats[cat.id]=cat.id==='rs'?-Math.round(base*.25/1000)*1000:Math.round(base/1000)*1000;});
+    d.push({id:m.id,name:m.name,subCount:Math.floor(r()*4500)+80,prodCount:m.prodCount,cats,total:Object.values(cats).reduce((a,b)=>a+b,0)});
+  }return d;
+})();
+const treeSvg=d3.select('#tree-svg');
+function switchView(mode){
+  currentView=mode;
+  const isMVNO=(mode==='mvno'),isTree=(mode==='tree'),isOnt=(mode==='ontology');
+  document.getElementById('rf-root').style.display=isOnt?'block':'none';
+  document.getElementById('tree-svg').style.display=isMVNO?'block':'none';
+  document.getElementById('ont-tree-svg').style.display=isTree?'block':'none';
+  const hint=document.getElementById('hint');
+  if(hint){hint.style.display=(isOnt&&!State.selClass)?'block':'none';if(isOnt)hint.style.opacity=State.selClass?'0':'1';}
+  const pb=document.getElementById('path-btn');if(pb)pb.style.display='none';
+  document.getElementById('counter').style.display=isOnt?'block':'none';
+  document.getElementById('tree-counter').style.display=isMVNO?'block':'none';
+  document.getElementById('mvno-style-bar').style.display=isMVNO?'flex':'none';
+  ['btn-all','btn-cls','btn-obj','btn-fit','btn-reset','btn-kor'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=(isMVNO||isTree)?'none':'';});
+  const sampleBtn=document.getElementById('btn-sample');if(sampleBtn)sampleBtn.style.display=(isMVNO||isTree)?'none':'';
+  const sepFilter=document.getElementById('sep-filter');if(sepFilter)sepFilter.style.display=(isMVNO||isTree)?'none':'';
+  if(!isOnt&&_sampleActive)clearSampleInstance();
+  document.getElementById('btn-view-ont').classList.toggle('active',isOnt);
+  document.getElementById('btn-view-mvno').classList.toggle('active',isMVNO);
+  document.getElementById('btn-view-tree').classList.toggle('active',isTree);
+  closeSlide();
+  if(isMVNO){renderMVNOTree();openMVNOAllSlide();}
+  if(isTree){renderOntologyTree();}
+}
+function switchMVNOStyle(s){
+  mvnoStyle=s;
+  document.querySelectorAll('#mvno-style-bar .sb').forEach(b=>b.classList.remove('active'));
+  const t=s==='bubble'?'btn-style-bubble':s==='radial'?'btn-style-radial':'';
+  const el=document.getElementById(t);if(el)el.classList.add('active');
+  if(currentView==='mvno')renderMVNOTree();
+}
+function getEffectiveGraphDims(){
+  const ga=document.getElementById('graph-area'),sl=document.getElementById('slide');
+  const slW=sl.classList.contains('open')?(parseInt(getComputedStyle(sl).width)||320):0;
+  return{W:ga.clientWidth-slW,H:ga.clientHeight};
+}
+function renderMVNOTree(){
+  const{W,H}=getEffectiveGraphDims();
+  treeSvg.attr('width',W).attr('height',H);treeSvg.selectAll('*').remove();
+  if(mvnoStyle==='bubble')renderBubbleChart(W,H);
+  else if(mvnoStyle==='radial')renderRadialChart(W,H);
+  else renderMVNOList(W,H);
+  document.getElementById('tree-counter').textContent=`총 ${MVNO_DATA.length}개 MVNO`;
+}
+function getMVNOColorScale(){const maxT=Math.max(...MVNO_DATA.map(m=>m.total));return d=>d3.interpolateTurbo(d.total/(maxT||1));}
+function getMVNORScale(W,H){const maxR=Math.min(W,H)*0.09;const minR=maxR*0.3;const maxT=Math.max(...MVNO_DATA.map(m=>m.total));return d=>minR+(maxR-minR)*(d.total/maxT);}
+function renderBubbleChart(W,H){
+  const colorScale=getMVNOColorScale();const rScale=getMVNORScale(W,H);
+  const sim2=d3.forceSimulation(MVNO_DATA.map(d=>({...d})))
+    .force('charge',d3.forceManyBody().strength(-30)).force('center',d3.forceCenter(W/2,H/2))
+    .force('collision',d3.forceCollide().radius(d=>rScale(d)+4)).stop();
+  for(let i=0;i<200;i++)sim2.tick();
+  const g=treeSvg.append('g');
+  const circles=g.selectAll('.mvno-bub').data(sim2.nodes()).enter().append('g').attr('class','mvno-bub')
+    .attr('transform',d=>`translate(${d.x},${d.y})`).style('cursor','pointer')
+    .on('click',(_,d)=>onMVNOClick(d)).on('mouseenter',(_,d)=>showMVNOTip(_,d)).on('mouseleave',hideMVNOTip);
+  circles.append('circle').attr('r',d=>rScale(d)).attr('fill',d=>colorScale(d)).attr('opacity',.82).attr('stroke','#fff').attr('stroke-width',.5);
+  circles.append('text').text(d=>d.name.length>10?d.name.slice(0,9)+'…':d.name)
+    .attr('text-anchor','middle').attr('dy','0.35em').attr('font-size',d=>Math.max(7,rScale(d)*0.22)).attr('fill','#fff').attr('pointer-events','none');
+  treeSvg.call(d3.zoom().scaleExtent([.3,4]).on('zoom',e=>g.attr('transform',e.transform)));
+}
+function renderRadialChart(W,H){
+  const maxT=Math.max(...MVNO_DATA.map(m=>m.total));
+  const sorted=[...MVNO_DATA].sort((a,b)=>b.total-a.total);const n=sorted.length;
+  const R=Math.min(W,H)*0.42;const R0=Math.min(W,H)*0.08;
+  const g=treeSvg.append('g').attr('transform',`translate(${W/2},${H/2})`);
+  const angleStep=(Math.PI*2)/n;
+  sorted.forEach((d,i)=>{
+    const ang=-Math.PI/2+i*angleStep;const r=R0+(R-R0)*(d.total/maxT);
+    const x=Math.cos(ang)*r;const y=Math.sin(ang)*r;const color=d3.interpolateTurbo(d.total/maxT);
+    g.append('line').attr('x1',0).attr('y1',0).attr('x2',x).attr('y2',y).attr('stroke',color).attr('stroke-width',1.5).attr('opacity',.5);
+    const gr=g.append('g').attr('transform',`translate(${x},${y})`).style('cursor','pointer')
+      .on('click',()=>onMVNOClick(d)).on('mouseenter',e=>showMVNOTip(e,d)).on('mouseleave',hideMVNOTip);
+    gr.append('circle').attr('r',5).attr('fill',color).attr('opacity',.9);
+    if(i%5===0||i===0||d.total===maxT)
+      gr.append('text').text(d.name.slice(0,8)).attr('text-anchor',x>0?'start':'end')
+        .attr('dx',x>0?8:-8).attr('dy','0.35em').attr('font-size',9).attr('fill','var(--txt3)');
+  });
+  g.append('circle').attr('r',R0).attr('fill','var(--bg2)').attr('stroke','var(--bdr)').attr('stroke-width',.5);
+  g.append('text').text('MVNO').attr('text-anchor','middle').attr('dy','0.35em').attr('font-size',9).attr('fill','var(--acc2)');
+  treeSvg.call(d3.zoom().scaleExtent([.3,4]).on('zoom',e=>treeSvg.select('g').attr('transform',`translate(${W/2},${H/2}) scale(${e.transform.k})`)));
+}
+function buildOntHierarchy(){
+  const childrenOf={};const hasParent={};
+  nodes.forEach(n=>{childrenOf[n.id]=[];});
+  OWL_LINKS.forEach(l=>{if(l.type==='sub'){if(!childrenOf[l.t])childrenOf[l.t]=[];childrenOf[l.t].push(l.s);hasParent[l.s]=true;}});
+  const rootIds=nodes.map(n=>n.id).filter(id=>!hasParent[id]);
+  function makeNode(id){
+    const n=nodes.find(x=>x.id===id)||{id,label:id,sub:'',domain:'settlement'};
+    const ch=(childrenOf[id]||[]).map(cid=>makeNode(cid));
+    return{id:n.id,label:n.label,sub:n.sub,domain:n.domain,abstract:n.abstract,children:ch.length?ch:undefined};
+  }
+  return d3.hierarchy({id:'_VRoot',label:'Settlement',sub:'정산 시스템',domain:'settlement',virtual:true,children:rootIds.map(rid=>makeNode(rid))});
+}
+function renderOntologyTree(){
+  const otSvg=d3.select('#ont-tree-svg');otSvg.selectAll('*').remove();
+  const ga=document.getElementById('graph-area');const W=ga.clientWidth;const H=ga.clientHeight;
+  const nodeSpX=148;const nodeSpY=110;
+  const treeLayout=d3.tree().nodeSize([nodeSpX,nodeSpY]);
+  const root=buildOntHierarchy();treeLayout(root);
+  let x0=Infinity;let x1=-Infinity;root.each(d=>{if(d.x<x0)x0=d.x;if(d.x>x1)x1=d.x;});
+  const treeW=(x1-x0)+nodeSpX;const defs=otSvg.append('defs');const rw=120;const rh=30;const rx=6;
+  Object.entries(DOMAINS).forEach(([k,v])=>{
+    const g=defs.append('linearGradient').attr('id','otg-'+k).attr('x1','0%').attr('y1','0%').attr('x2','100%').attr('y2','0%');
+    g.append('stop').attr('offset','0%').attr('stop-color',v.color).attr('stop-opacity',.25);
+    g.append('stop').attr('offset','100%').attr('stop-color',v.color).attr('stop-opacity',.08);
+  });
+  const G=otSvg.append('g');const iTX=W/2-x0-treeW/2;const iTY=40;
+  G.attr('transform',`translate(${iTX},${iTY})`);
+  otSvg.call(d3.zoom().scaleExtent([.12,3]).on('zoom',e=>G.attr('transform',e.transform)));
+  const objLinks=OWL_LINKS.filter(l=>l.type==='obj');
+  G.selectAll('.otlink-sub').data(root.links()).enter().append('path').attr('class','otlink-sub').attr('d',d3.linkVertical().x(d=>d.x).y(d=>d.y));
+  root.each(d=>{
+    if(d.data.virtual)return;
+    objLinks.forEach(l=>{
+      if(l.s!==d.data.id)return;
+      const target=root.descendants().find(t=>t.data.id===l.t);if(!target)return;
+      G.append('path').attr('class','otlink-obj')
+        .attr('d',`M${d.x},${d.y} C${d.x},${(d.y+target.y)/2} ${target.x},${(d.y+target.y)/2} ${target.x},${target.y}`);
+    });
+  });
+  const nodeG=G.selectAll('.ot-node').data(root.descendants()).enter().append('g').attr('class','ot-node')
+    .attr('transform',d=>`translate(${d.x},${d.y})`).style('cursor','pointer');
+  nodeG.each(function(d){
+    const g2=d3.select(this);const dom=DOMAINS[d.data.domain]||DOMAINS.settlement;
+    if(d.data.virtual){
+      g2.append('circle').attr('r',22).attr('fill',dom.color).attr('opacity',.9).attr('stroke','#fff').attr('stroke-width',1.5);
+      g2.append('text').text(d.data.label).attr('text-anchor','middle').attr('dy','0.35em').attr('font-size',11).attr('font-weight','700').attr('fill','#fff').attr('pointer-events','none');
+    } else {
+      g2.append('rect').attr('x',-rw/2).attr('y',-rh/2).attr('width',rw).attr('height',rh).attr('rx',rx)
+        .attr('fill',`url(#otg-${d.data.domain})`).attr('stroke',dom.color).attr('stroke-width',1.4);
+      if(d.data.abstract)g2.append('rect').attr('x',-rw/2).attr('y',-rh/2).attr('width',rw).attr('height',rh).attr('rx',rx)
+        .attr('fill','none').attr('stroke',dom.color).attr('stroke-width',.5).attr('stroke-dasharray','3 2');
+      g2.append('text').text(d.data.label.length>14?d.data.label.slice(0,13)+'…':d.data.label)
+        .attr('text-anchor','middle').attr('dy',d.data.sub?'-0.2em':'0.35em').attr('font-size',10.5).attr('font-weight','600').attr('fill',dom.color).attr('pointer-events','none');
+      if(d.data.sub)g2.append('text').text(d.data.sub.length>14?d.data.sub.slice(0,13)+'…':d.data.sub)
+        .attr('text-anchor','middle').attr('dy','0.9em').attr('font-size',8.5).attr('fill','var(--txt4)').attr('pointer-events','none');
+      const cc=d.children?d.children.length:0;
+      if(cc>0){
+        g2.append('circle').attr('cx',rw/2-8).attr('cy',-rh/2+8).attr('r',7).attr('fill',dom.color).attr('opacity',.85);
+        g2.append('text').text(cc).attr('x',rw/2-8).attr('y',-rh/2+8).attr('text-anchor','middle').attr('dy','0.35em').attr('font-size',7.5).attr('fill','#fff').attr('pointer-events','none');
+      }
+    }
+  });
+  nodeG.filter(d=>!d.data.virtual).on('click',(_,d)=>{
+    if(currentView!=='tree')return;
+    const nd=OWL_NODES.find(n=>n.id===d.data.id);if(!nd)return;
+    State.selClass=nd.id;Srch.inst={text:'',esim:false,prepaid:false,excess:false};
+    openSlide(nd);switchSlideTab((CLASS_SUBS[nd.id]||[]).length>0?'instances':'info');
+  }).on('mouseenter',(_,d)=>{if(!d.data.virtual){const nd=OWL_NODES.find(n=>n.id===d.data.id);if(nd)showTip(_,nd);}}).on('mouseleave',()=>hideTip());
+  otSvg.on('mousemove',e=>{const r=ga.getBoundingClientRect();tip.style.left=(e.clientX-r.left+14)+'px';tip.style.top=(e.clientY-r.top-10)+'px';});
+}
+function openMVNOAllSlide(){
+  document.getElementById('slide').classList.add('open');
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  document.getElementById('slide-color-bar').style.background='var(--acc)';
+  const titleEl=document.getElementById('slide-title');titleEl.textContent='MVNO 현황 — 전체';titleEl.style.color='var(--acc)';
+  const sortedMVNO=[...MVNO_DATA].sort((a,b)=>b.total-a.total);
+  let h2=`<div style="margin-bottom:10px">
+    <div style="font-size:11px;color:var(--txt4);margin-bottom:8px">정산 규모 순 (${MVNO_DATA.length}개 MVNO)</div>
+    <div class="mvno-stat-grid" style="grid-template-columns:1fr 1fr">
+      <div class="mvno-stat"><div class="mvno-stat-val">${fmtN(MVNO_DATA.reduce((a,b)=>a+b.subCount,0))}</div><div class="mvno-stat-lbl">총 가입자</div></div>
+      <div class="mvno-stat"><div class="mvno-stat-val">${fmtN(MVNO_DATA.reduce((a,b)=>a+b.total,0))}</div><div class="mvno-stat-lbl">합산 정산</div></div>
+    </div></div>`;
+  sortedMVNO.forEach((d,i)=>{
+    const prevD=MVNO_DATA_PP.find(p=>p.id===d.id);const diff=prevD?d.total-prevD.total:0;
+    const pct=prevD&&prevD.total?((diff/prevD.total)*100).toFixed(1):null;
+    h2+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;margin-bottom:2px;border-radius:6px;cursor:pointer;border:1px solid var(--bdr)" onclick="onMVNOClick_id('${d.id}')">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:9px;color:var(--txt4);width:18px;text-align:right">${i+1}</span>
+        <div><div style="font-size:11px;font-weight:700;color:var(--txt)">${d.name}</div>
+          <div style="font-size:9px;color:var(--txt4)">가입자 ${d.subCount.toLocaleString()}명</div></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;font-weight:700;color:var(--gold)">${fmtN(d.total)}</div>
+        ${pct!==null?`<div style="font-size:9px;color:${diff>0?'var(--grn)':diff<0?'#ef4444':'var(--txt4)'}">${diff>0?'▲':'▼'} ${Math.abs(+pct)}%</div>`:''}
+      </div></div>`;
+  });
+  document.querySelectorAll('#slide .sl-content').forEach(e=>e.style.display='none');
+  const tgt=document.getElementById('sl-info');tgt.style.display='';tgt.innerHTML=h2;
+}
+window.onMVNOClick_id=function(id){const d=MVNO_DATA.find(m=>m.id===id);if(d)onMVNOClick(d);};
+function onMVNOClick(d){selMVNO=d.id;if(currentView==='mvno')renderMVNOTree();openMVNOSlide(d);}
+function openMVNOSlide(d){
+  document.getElementById('slide').classList.add('open');
+  document.getElementById('slide-tabs').style.display='none';
+  document.getElementById('slide-tabs-mc').style.display='none';
+  document.getElementById('slide-color-bar').style.background='var(--acc)';
+  const titleEl=document.getElementById('slide-title');titleEl.textContent=d.name;titleEl.style.color='var(--acc)';
+  document.querySelectorAll('#slide .sl-content').forEach(e=>e.style.display='none');
+  const tgt=document.getElementById('sl-info');tgt.style.display='';tgt.innerHTML=buildMVNODetailHTML(d);
+}
+function buildMVNODetailHTML(d){
+  const prev=MVNO_DATA_PP.find(p=>p.id===d.id);const diff=prev?d.total-prev.total:null;
+  const pct=prev&&prev.total?((diff/prev.total)*100).toFixed(1):null;
+  let h2=`<div style="margin-bottom:12px">
+    <div style="font-size:11px;font-weight:800;color:var(--txt)">${d.name}</div>
+    <div style="font-size:10px;color:var(--txt4)">가입자 ${d.subCount.toLocaleString()}명 · 요금제 ${d.prodCount}종</div>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:16px;font-weight:800;color:var(--gold)">${fmtN(d.total)}</span>
+      ${pct!==null?`<span style="font-size:10px;color:${diff>0?'var(--grn)':diff<0?'#ef4444':'var(--txt4)'}">${diff>0?'▲':'▼'} ${Math.abs(+pct)}% (전전월 대비)</span>`:''}
+    </div></div>
+  <div style="font-size:10px;color:var(--txt4);font-weight:700;margin-bottom:6px">항목별 정산</div>`;
+  SETT_CATS.forEach(cat=>{const amt=d.cats[cat.id]||0;
+    h2+=`<div class="mvno-sum-row"><span class="mvno-sum-lbl" style="color:${cat.color}">${cat.name}</span>
+      <span class="mvno-sum-val${amt<0?' neg-amt':''}">${fmtN(amt)}</span></div>`;});
+  if(prev){
+    h2+=`<div style="font-size:10px;color:var(--txt4);font-weight:700;margin:10px 0 6px">전전월 비교</div>`;
+    SETT_CATS.forEach(cat=>{const cur=d.cats[cat.id]||0;const pv=prev.cats[cat.id]||0;const dif=cur-pv;
+      if(Math.abs(dif)<100)return;
+      h2+=`<div class="mvno-sum-row"><span class="mvno-sum-lbl">${cat.name}</span>
+        <span class="mvno-sum-val${dif<0?' neg-amt':''}">${dif>0?'+':''}${fmtN(dif)}</span></div>`;});
+  }
+  h2+=`<button class="wi-btn" style="margin-top:10px" onclick="openMVNOAllSlide()">← 전체 목록으로</button>`;
+  return h2;
+}
+const mvnoTip=document.getElementById('mvno-tip');
+function showMVNOTip(e,d){
+  if(!mvnoTip)return;const r=document.getElementById('graph-area').getBoundingClientRect();
+  const prev=MVNO_DATA_PP.find(p=>p.id===d.id);const diff=prev?d.total-prev.total:null;
+  mvnoTip.innerHTML=`<div style="font-weight:700">${d.name}</div><div>가입자 ${d.subCount.toLocaleString()}명</div>
+    <div>정산 합계: ${fmtN(d.total)}</div>
+    ${diff!==null?`<div style="color:${diff>0?'#3fb950':'#ef4444'}">${diff>0?'▲':'▼'} ${fmtN(Math.abs(diff))}</div>`:''}`;
+  mvnoTip.style.display='block';
+  mvnoTip.style.left=(e.clientX-r.left+14)+'px';mvnoTip.style.top=(e.clientY-r.top-10)+'px';
+}
+function hideMVNOTip(){if(mvnoTip)mvnoTip.style.display='none';}
+document.getElementById('tree-svg').addEventListener('mousemove',e=>{
+  if(!mvnoTip||mvnoTip.style.display==='none')return;
+  const r=document.getElementById('graph-area').getBoundingClientRect();
+  mvnoTip.style.left=(e.clientX-r.left+14)+'px';mvnoTip.style.top=(e.clientY-r.top-10)+'px';
+});
+// ══════════════════════════════════════════════════════
+// §V8_S7 — 초기화
+// ══════════════════════════════════════════════════════
+mountOntologyFlow();
+switchView('ontology');
+</script>
+</body>
+</html>
