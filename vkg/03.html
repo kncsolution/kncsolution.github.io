@@ -1,0 +1,172 @@
+<title>VKG Layer Technical Spec</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#f5f6fb; --paper-raised:#ffffff; --ink:#161a2b; --ink-soft:#4b5169; --muted:#767c96;
+  --line:#dfe2ee; --accent:#4f46e5; --accent-ink:#ffffff; --accent-soft:#eceafd;
+  --success:#157f5a; --success-soft:#e4f6ee; --warning:#a15c07; --warning-soft:#fbeed7;
+  --danger:#b3261e; --danger-soft:#fbe4e2; --code-bg:#eef0f8;
+  --font-head:"Space Grotesk", "IBM Plex Sans KR", sans-serif;
+  --font-body:"IBM Plex Sans", "IBM Plex Sans KR", sans-serif;
+  --font-mono:"IBM Plex Mono", monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0c0e18; --paper-raised:#151827; --ink:#eef0fa; --ink-soft:#b7bcd6; --muted:#7d84a3;
+    --line:#262b40; --accent:#8b85f5; --accent-ink:#0c0e18; --accent-soft:#201d3d;
+    --success:#4ed19a; --success-soft:#12291f; --warning:#f0b429; --warning-soft:#332405;
+    --danger:#f2726c; --danger-soft:#341410; --code-bg:#1b1f30;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0c0e18; --paper-raised:#151827; --ink:#eef0fa; --ink-soft:#b7bcd6; --muted:#7d84a3;
+  --line:#262b40; --accent:#8b85f5; --accent-ink:#0c0e18; --accent-soft:#201d3d;
+  --success:#4ed19a; --success-soft:#12291f; --warning:#f0b429; --warning-soft:#332405;
+  --danger:#f2726c; --danger-soft:#341410; --code-bg:#1b1f30;
+}
+*{box-sizing:border-box;}
+body{background:var(--paper); color:var(--ink); font-family:var(--font-body); line-height:1.6; margin:0;}
+.wrap{max-width:920px; margin:0 auto; padding:56px 24px 120px;}
+h1,h2,h3{font-family:var(--font-head); font-weight:600; text-wrap:balance; letter-spacing:-0.01em;}
+.eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin:0 0 10px;}
+h1{font-size:34px; margin:0 0 8px;}
+.subtitle{color:var(--ink-soft); font-size:16px; margin:0 0 6px;}
+.meta{display:flex; gap:16px; flex-wrap:wrap; font-family:var(--font-mono); font-size:12px; color:var(--muted); margin-top:18px; padding-top:18px; border-top:1px solid var(--line);}
+.meta span b{color:var(--ink-soft); font-weight:500;}
+section{margin-top:52px;}
+h2{font-size:22px; margin:0 0 6px; display:flex; align-items:center; gap:10px;}
+h2 .num{font-family:var(--font-mono); font-size:13px; color:var(--muted); font-weight:400;}
+.lede{color:var(--ink-soft); font-size:15px; margin:0 0 20px; max-width:70ch;}
+p{font-size:15px; color:var(--ink-soft);}
+.card{background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:20px 22px;}
+.grid{display:grid; gap:14px;}
+.grid.cols-2{grid-template-columns:repeat(2,1fr);}
+.grid.cols-3{grid-template-columns:repeat(3,1fr);}
+@media (max-width:720px){.grid.cols-2,.grid.cols-3{grid-template-columns:1fr;}}
+.stage{background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:16px 18px;}
+.stage b{font-family:var(--font-head); font-size:14.5px;}
+.stage .tag{font-family:var(--font-mono); font-size:10.5px; color:var(--accent); text-transform:uppercase; letter-spacing:0.08em;}
+.stage p{margin:6px 0 0; font-size:13px; color:var(--ink-soft);}
+table{width:100%; border-collapse:collapse; font-size:13.5px; margin-top:4px;}
+th{text-align:left; font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:500; padding:8px 12px; border-bottom:1px solid var(--line);}
+td{padding:10px 12px; border-bottom:1px solid var(--line); color:var(--ink-soft); vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+td code, p code, li code{font-family:var(--font-mono); background:var(--code-bg); border-radius:4px; padding:1px 5px; font-size:0.9em; color:var(--ink);}
+.tbl-wrap{overflow-x:auto; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px;}
+.tbl-wrap table{margin:0;}
+.pill{display:inline-block; font-family:var(--font-mono); font-size:10.5px; padding:2px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:0.05em;}
+.pill.done{background:var(--success-soft); color:var(--success);}
+.pill.limit{background:var(--warning-soft); color:var(--warning);}
+.pill.todo{background:var(--danger-soft); color:var(--danger);}
+ul{padding-left:20px; font-size:14.5px; color:var(--ink-soft);}
+li{margin:5px 0;}
+.callout{border-left:3px solid var(--accent); background:var(--accent-soft); border-radius:0 8px 8px 0; padding:12px 16px; font-size:13.5px; color:var(--ink-soft);}
+.callout.warn{border-left-color:var(--warning); background:var(--warning-soft);}
+.flow{display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-family:var(--font-mono); font-size:12.5px; margin:14px 0;}
+.flow .node{background:var(--accent-soft); color:var(--accent); border-radius:6px; padding:6px 12px; font-weight:500;}
+.flow .arrow{color:var(--muted);}
+footer{margin-top:64px; padding-top:20px; border-top:1px solid var(--line); font-size:12.5px; color:var(--muted); font-family:var(--font-mono);}
+.mermaid{background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:20px; overflow-x:auto;}
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Product Specification · Internal / Engineering</p>
+  <h1>Virtual Knowledge Graph (VKG) Layer</h1>
+  <p class="subtitle">tabularis 위에 얹는 SPARQL 기반 시맨틱 조회 레이어 — 원본 관계형 데이터는 건드리지 않는 순수 가상 계층.</p>
+  <div class="meta">
+    <span>Doc <b>v1.0</b></span>
+    <span>2026-08-24</span>
+    <span>Audience: <b>내부 개발팀</b></span>
+    <span>Stack: <b>Tauri 2 · Rust · React 19</b></span>
+    <span>Repo: <b>kncsolution/vkg</b> (fork of TabularisDB/tabularis)</span>
+  </div>
+
+  <section>
+    <h2><span class="num">01</span> 개요</h2>
+    <p class="lede">VKG는 사용자의 관계형 DB(RDB) 위에 Ontology(온톨로지) · Mapping(R2RML/OBDA) 계층을 얹어, 원본 스키마를 수정하지 않고도 SPARQL로 질의 가능한 지식 그래프 뷰를 제공하는 tabularis의 신규 레이어입니다. 질의는 <b>Ontop</b> 엔진이 SPARQL → SQL로 실시간 재작성(rewriting)해 실행하며, 결과는 항상 RDB의 현재 상태를 그대로 반영합니다 — 별도 그래프 DB로의 ETL/복제가 없습니다.</p>
+    <div class="flow">
+      <span class="node">RDB (read-only)</span><span class="arrow">→</span>
+      <span class="node">Ontology (OWL/Turtle)</span><span class="arrow">→</span>
+      <span class="node">Mapping (.obda)</span><span class="arrow">→</span>
+      <span class="node">Pipeline</span><span class="arrow">→</span>
+      <span class="node">Rule</span><span class="arrow">→</span>
+      <span class="node">Ontop</span><span class="arrow">→</span>
+      <span class="node">SPARQL Endpoint</span>
+    </div>
+    <div class="callout">핵심 설계 원칙: <b>비파괴적(non-destructive)</b>. VKG의 모든 계층은 RDB에 대한 읽기 전용 뷰이며, Ontop 컨테이너는 프로젝트 단위로 격리되어 기동됩니다.</div>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span> 아키텍처 스테이지</h2>
+    <p class="lede">각 VKG 프로젝트는 5개 계층을 순서대로 통과해 SPARQL 엔드포인트가 됩니다.</p>
+    <div class="grid cols-3">
+      <div class="stage"><span class="tag">Stage 1</span><br><b>Ontology</b><p>OWL 클래스/속성 정의 (Turtle 직렬화). Mapping Bootstrap으로 스키마에서 자동 생성하거나 Ontology Editor에서 수동 편집.</p></div>
+      <div class="stage"><span class="tag">Stage 2</span><br><b>Mapping</b><p>R2RML 스타일 .obda 매핑 — 테이블 행을 RDF 리소스/트리플로 변환하는 규칙. Class Mapping / Relationship Mapping 두 종류.</p></div>
+      <div class="stage"><span class="tag">Stage 3</span><br><b>Pipeline</b><p>여러 클래스를 조인·집계·UNION·체이닝해 하나의 재사용 가능한 데이터 소스로 결합. Rule이 실행되는 대상.</p></div>
+      <div class="stage"><span class="tag">Stage 4</span><br><b>Rule</b><p>AND/OR 조건 체인을 SPARQL FILTER/HAVING으로 컴파일하는 결정론적 검증 규칙. 검증/기간비교/What-if 3종 실행 모드 공유.</p></div>
+      <div class="stage"><span class="tag">Stage 5</span><br><b>Ontop Runtime</b><p>프로젝트별 Docker 사이드카로 기동되는 SPARQL-to-SQL 재작성 엔진. 저장된 Ontology/Mapping을 로드해 라이브 엔드포인트를 노출.</p></div>
+      <div class="stage"><span class="tag">UI</span><br><b>SPARQL Editor</b><p>임의 SPARQL 실행 + 결과의 테이블/그래프 토글 뷰. 그래프 뷰는 클래스/인스턴스 노드 구분과 N-hop 자동 확장을 지원.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span> Pipeline 데이터 모델</h2>
+    <p class="lede">Pipeline은 단일 클래스부터 다중 조인·집계·UNION·체이닝까지 하나의 타입으로 표현됩니다 (조인 0개 = 순수 단일 클래스 Rule과 완전히 동일).</p>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>필드</th><th>역할</th></tr>
+        <tr><td><code>base_class</code> / <code>joins[]</code></td><td>기준 클래스 + 임의 깊이 조인 체인 (A→B→C…). 각 hop은 <code>from_alias</code>로 이전 hop 또는 base에서 이어붙임.</td></tr>
+        <tr><td><code>aggregate</code></td><td>GROUP BY + SUM/COUNT/AVG/MIN/MAX 집계. 설정 시 Rule 조건은 FILTER 대신 HAVING으로 컴파일.</td></tr>
+        <tr><td><code>union_of</code></td><td>서로 다른 조인 체인 여러 개를 SPARQL UNION으로 통합 (arm별 필드를 통일된 이름으로 매핑).</td></tr>
+        <tr><td><code>source_pipeline_id</code></td><td>다른 Pipeline의 출력(집계 결과 포함)을 그대로 입력으로 체이닝 — 서브쿼리로 임베드.</td></tr>
+        <tr><td><code>compute[]</code></td><td>체이닝된 Pipeline 위에서 계산되는 파생 필드. branches(WHEN AND/OR 조건 → 값) + default_value(ELSE), 값은 리터럴 / 원본 필드 / 산술식(+ − × ÷) 중 하나. 중첩 <code>IF(...)</code>로 컴파일.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span> Rule 데이터 모델</h2>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>필드</th><th>역할</th></tr>
+        <tr><td><code>conditions[]</code></td><td>속성/연산자/값 + AND·OR <code>logical_operator</code>로 체이닝되는 조건 행 목록. 연산자 10종 (같음/다름/대소/차이/포함/비어있음 등).</td></tr>
+        <tr><td><code>period</code></td><td>날짜 범위 바인딩 — 조건과 별도로 관리되어 기간 드롭다운으로만 조정.</td></tr>
+        <tr><td><code>RuleExecutionOverrides</code></td><td>저장된 Rule을 변경하지 않고 이번 실행에만 기간/조건값을 덮어씀 — <b>기간 비교</b>와 <b>추론(What-if)</b>이 이 메커니즘 하나로 구현됨.</td></tr>
+        <tr><td><code>RuleExecutionResult</code></td><td>실행 스냅샷(전체/위반 건수 + 위반 행)을 그대로 영속화 — 감사 추적을 위해 재계산하지 않고 그 시점 판정을 보존.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span> VKG 생성 마법사 (6단계)</h2>
+    <p class="lede"><code>CreateVkgWizard</code> — 기존 tabularis 연결을 그대로 재사용해 처음부터 끝까지 클릭만으로 VKG 프로젝트를 만드는 온보딩 플로우.</p>
+    <div class="grid cols-3">
+      <div class="stage"><span class="tag">1</span><b>Select Data Source</b><p>저장된 연결(connection) 중 하나 선택.</p></div>
+      <div class="stage"><span class="tag">2</span><b>Select Schema</b><p>자동 생성 대상 테이블 체크박스 선택.</p></div>
+      <div class="stage"><span class="tag">3</span><b>Bootstrap Mapping</b><p>선택 테이블에서 Ontology + Mapping 자동 생성 실행.</p></div>
+      <div class="stage"><span class="tag">4</span><b>Create Ontology</b><p>생성된 Class/Property 목록 확인.</p></div>
+      <div class="stage"><span class="tag">5</span><b>Review</b><p>이름·소스·테이블·클래스 수 최종 확인.</p></div>
+      <div class="stage"><span class="tag">6</span><b>Start VKG</b><p>프로젝트 확정 (Ontop 기동 연결은 후속 작업).</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span> 기능 범위 &amp; 알려진 한계</h2>
+    <div class="tbl-wrap">
+      <table>
+        <tr><th>기능</th><th>상태</th><th>비고</th></tr>
+        <tr><td>Mapping Bootstrap</td><td><span class="pill limit">범위 제한</span></td><td>단일 컬럼 PK 테이블만 지원. 복합키/자기참조/N:M 조인테이블은 Mapping Editor에서 수동 매핑 필요.</td></tr>
+        <tr><td>Pipeline 조인/집계/UNION/체이닝</td><td><span class="pill done">완료</span></td><td>임의 깊이 조인, GROUP BY 집계, 다중 arm UNION, Pipeline 체이닝 모두 지원.</td></tr>
+        <tr><td>Compute 필드 (다중분기/산술/AND·OR)</td><td><span class="pill done">완료</span></td><td>CASE WHEN 다중 branch, 조건 AND/OR 체이닝(Rule과 동일 모델 재사용), 산술 연산(+ − × ÷) 지원.</td></tr>
+        <tr><td>Rule 검증/기간비교/What-if</td><td><span class="pill done">완료</span></td><td>세 실행 모드가 동일 <code>to_sparql</code> 경로 + overrides 인자 하나로 구현.</td></tr>
+        <tr><td>SPARQL 결과 그래프 뷰</td><td><span class="pill done">완료</span></td><td>클래스/인스턴스 노드 구분, 드래그 이동, N-hop 자동 확장(BFS, hop당 최대 200 프론티어).</td></tr>
+        <tr><td>Ontop 실기동 연결 (§13)</td><td><span class="pill todo">예정</span></td><td>마법사 6단계 "Start VKG"는 현재 상태 마킹만 수행. Docker 사이드카 실제 기동은 별도 작업.</td></tr>
+        <tr><td>Rule 실행 이력 UI / 대시보드</td><td><span class="pill todo">예정</span></td><td>스냅샷은 저장되지만 조회 UI·스케줄링·시각화 대시보드는 백로그.</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    tabularis / VKG · Fork: github.com/kncsolution/vkg · Upstream: github.com/TabularisDB/tabularis · CI: GitHub Actions (typecheck → lint → build → cargo test)
+  </footer>
+</div>

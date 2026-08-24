@@ -1,0 +1,278 @@
+<title>VKG</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#f6f7fb; --paper-raised:#ffffff; --ink:#161a2b; --ink-soft:#4b5169; --muted:#767c96;
+  --line:#e2e5f0; --accent:#4f46e5; --accent-2:#0ea5a4; --accent-soft:#eceafd; --accent-2-soft:#e2f8f7;
+  --nav-bg:rgba(246,247,251,0.82);
+  --font-head:"Space Grotesk","IBM Plex Sans KR",sans-serif;
+  --font-body:"IBM Plex Sans","IBM Plex Sans KR",sans-serif;
+  --font-mono:"IBM Plex Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0b0d16; --paper-raised:#141726; --ink:#eef0fa; --ink-soft:#b7bcd6; --muted:#7d84a3;
+    --line:#242940; --accent:#8b85f5; --accent-2:#3fd0cf; --accent-soft:#1e1b38; --accent-2-soft:#122a2a;
+    --nav-bg:rgba(11,13,22,0.82);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0b0d16; --paper-raised:#141726; --ink:#eef0fa; --ink-soft:#b7bcd6; --muted:#7d84a3;
+  --line:#242940; --accent:#8b85f5; --accent-2:#3fd0cf; --accent-soft:#1e1b38; --accent-2-soft:#122a2a;
+  --nav-bg:rgba(11,13,22,0.82);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--paper); color:var(--ink); font-family:var(--font-body); line-height:1.65; margin:0;}
+h1,h2,h3{font-family:var(--font-head); font-weight:600; text-wrap:balance; letter-spacing:-0.01em; margin:0;}
+a{color:inherit;}
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px;}
+
+/* NAV */
+nav{position:sticky; top:0; z-index:20; backdrop-filter:blur(10px); background:var(--nav-bg); border-bottom:1px solid var(--line);}
+.nav-inner{max-width:1080px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between;}
+.brand{display:flex; align-items:center; gap:8px; font-family:var(--font-head); font-weight:700; font-size:17px;}
+.brand .mark{width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); position:relative;}
+.brand .mark::after{content:""; position:absolute; inset:6px; border-radius:3px; background:var(--paper-raised); opacity:0.9;}
+.nav-links{display:flex; gap:26px; font-size:13.5px; color:var(--ink-soft);}
+.nav-links a{text-decoration:none; transition:color .15s;}
+.nav-links a:hover{color:var(--accent);}
+.nav-cta{background:var(--accent); color:#fff; font-size:13px; font-weight:600; padding:8px 16px; border-radius:8px; text-decoration:none; white-space:nowrap;}
+@media (max-width:720px){.nav-links{display:none;}}
+
+/* HERO */
+.hero{padding:96px 0 60px; text-align:center; position:relative; overflow:hidden;}
+.hero::before{content:""; position:absolute; top:-200px; left:50%; transform:translateX(-50%); width:900px; height:500px; background:radial-gradient(ellipse at center, var(--accent-soft) 0%, transparent 70%); z-index:-1; opacity:.9;}
+.eyebrow{display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); background:var(--accent-soft); border-radius:999px; padding:6px 14px;}
+.hero h1{font-size:48px; max-width:19ch; margin:22px auto 18px; line-height:1.14;}
+.hero h1 .grad{background:linear-gradient(90deg,var(--accent),var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.hero p{font-size:17px; color:var(--ink-soft); max-width:56ch; margin:0 auto;}
+.hero-ctas{display:flex; gap:12px; justify-content:center; margin-top:32px; flex-wrap:wrap;}
+.btn-primary{background:var(--accent); color:#fff; font-weight:600; font-size:14.5px; padding:13px 26px; border-radius:9px; text-decoration:none; box-shadow:0 8px 24px -8px color-mix(in srgb, var(--accent) 60%, transparent);}
+.btn-secondary{background:var(--paper-raised); border:1px solid var(--line); color:var(--ink); font-weight:600; font-size:14.5px; padding:13px 26px; border-radius:9px; text-decoration:none;}
+
+.diagram{display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; margin:56px 0 0; font-family:var(--font-mono); font-size:13px;}
+.diagram .box{background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:12px 18px; color:var(--ink-soft); box-shadow:0 2px 10px -4px rgba(0,0,0,.08);}
+.diagram .box.hi{border-color:var(--accent); color:var(--accent); font-weight:600;}
+.diagram .sep{color:var(--muted);}
+
+/* generic section */
+section{padding:80px 0;}
+section.alt{background:var(--paper-raised); border-top:1px solid var(--line); border-bottom:1px solid var(--line);}
+.section-head{text-align:center; max-width:62ch; margin:0 auto 44px;}
+.section-head .eyebrow{background:none; padding:0;}
+.section-head h2{font-size:30px; margin:10px 0 10px;}
+.section-head p{color:var(--ink-soft); font-size:15.5px; margin:0;}
+
+/* feature grid */
+.feature-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+@media (max-width:820px){.feature-grid{grid-template-columns:1fr 1fr;}}
+@media (max-width:560px){.feature-grid{grid-template-columns:1fr;}}
+.feature{background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:26px; transition:transform .18s, box-shadow .18s;}
+.feature:hover{transform:translateY(-3px); box-shadow:0 12px 28px -14px rgba(0,0,0,.18);}
+.feature .glyph{width:38px; height:38px; border-radius:10px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; color:var(--accent); font-family:var(--font-mono); font-weight:600; margin-bottom:14px;}
+.feature h3{font-size:16px; margin:0 0 8px;}
+.feature p{font-size:13.5px; color:var(--ink-soft); margin:0;}
+
+/* AI spotlight */
+.ai-panel{display:grid; grid-template-columns:1fr 1fr; gap:44px; align-items:center;}
+@media (max-width:820px){.ai-panel{grid-template-columns:1fr;}}
+.ai-copy .eyebrow{background:var(--accent-2-soft); color:var(--accent-2);}
+.ai-copy h2{font-size:28px; margin:16px 0 12px;}
+.ai-copy p{color:var(--ink-soft); font-size:15px;}
+.ai-list{list-style:none; padding:0; margin:20px 0 0; display:grid; gap:12px;}
+.ai-list li{display:flex; gap:10px; font-size:14px; color:var(--ink-soft);}
+.ai-list li .dot{width:6px; height:6px; border-radius:50%; background:var(--accent-2); margin-top:8px; flex-shrink:0;}
+.chat-demo{background:var(--paper-raised); border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 20px 50px -24px rgba(0,0,0,.25);}
+.chat-demo .bubble{border-radius:12px; padding:12px 16px; font-size:13.5px; margin-bottom:10px; max-width:88%;}
+.chat-demo .bubble.user{background:var(--accent-soft); color:var(--accent); margin-left:auto; font-family:var(--font-body);}
+.chat-demo .bubble.ai{background:var(--paper); border:1px solid var(--line); color:var(--ink-soft);}
+.chat-demo .code{font-family:var(--font-mono); font-size:12px; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:12px; color:var(--accent-2); white-space:pre-wrap; margin-top:8px;}
+
+/* steps */
+.steps{counter-reset:step; display:grid; grid-template-columns:repeat(4,1fr); gap:0;}
+@media (max-width:820px){.steps{grid-template-columns:1fr 1fr;}}
+@media (max-width:560px){.steps{grid-template-columns:1fr;}}
+.step{position:relative; padding:0 16px; text-align:center;}
+.step .circle{counter-increment:step; width:40px; height:40px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-family:var(--font-head); font-weight:600; margin:0 auto 14px;}
+.step .circle::before{content:counter(step);}
+.step h3{font-size:15px; margin:0 0 8px;}
+.step p{font-size:13px; color:var(--ink-soft); margin:0;}
+
+/* compare */
+.compare{width:100%; border-collapse:collapse; font-size:14px; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+.compare th{background:var(--accent-soft); color:var(--accent); text-align:left; padding:12px 16px; font-family:var(--font-mono); font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em;}
+.compare td{padding:13px 16px; border-top:1px solid var(--line); color:var(--ink-soft);}
+.compare td.yes{color:var(--accent-2); font-weight:600;}
+
+/* assurance */
+.assurance{background:var(--paper-raised); border:1px solid var(--line); border-radius:16px; padding:32px; display:flex; gap:24px; align-items:flex-start;}
+@media (max-width:640px){.assurance{flex-direction:column;}}
+.assurance .badge{font-family:var(--font-mono); font-size:12px; color:var(--accent-2); border:1px solid var(--accent-2); border-radius:999px; padding:6px 14px; white-space:nowrap;}
+.assurance p{font-size:14.5px; color:var(--ink-soft); margin:0;}
+
+/* faq */
+.faq-item{padding:20px 0; border-bottom:1px solid var(--line);}
+.faq-item:first-child{border-top:1px solid var(--line);}
+.faq-item h3{font-size:15px; margin:0 0 6px;}
+.faq-item p{font-size:13.5px; color:var(--ink-soft); margin:0;}
+
+/* final cta */
+.cta-final{text-align:center; background:linear-gradient(135deg, var(--accent-soft), var(--accent-2-soft)); border-radius:24px; padding:64px 32px; margin:0 24px;}
+.cta-final h2{font-size:30px; margin:0 0 12px;}
+.cta-final p{color:var(--ink-soft); font-size:15px; max-width:50ch; margin:0 auto 28px;}
+
+footer{padding:48px 24px 40px; text-align:center;}
+.foot-links{display:flex; gap:20px; justify-content:center; font-size:13px; color:var(--muted); margin-bottom:16px; flex-wrap:wrap;}
+.foot-note{font-family:var(--font-mono); font-size:11.5px; color:var(--muted);}
+</style>
+
+<nav>
+  <div class="nav-inner">
+    <div class="brand"><span class="mark"></span> VKG</div>
+    <div class="nav-links">
+      <a href="#features">기능</a>
+      <a href="#ai">AI 질의</a>
+      <a href="#how">사용법</a>
+      <a href="#compare">비교</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <a class="nav-cta" href="#contact">문의하기</a>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <span class="eyebrow">Virtual Knowledge Graph</span>
+  <h1>데이터를 옮기지 않고,<br><span class="grad">의미로 질의</span>하세요</h1>
+  <p>기존 데이터베이스는 그대로 둔 채, 그 위에 지식그래프 관점을 얹어 자연어로 질문하고, 데이터 품질을 자동으로 지킵니다.</p>
+  <div class="hero-ctas">
+    <a class="btn-primary" href="#contact">문의하기</a>
+    <a class="btn-secondary" href="#features">기능 살펴보기</a>
+  </div>
+  <div class="diagram">
+    <span class="box hi">내 데이터베이스</span><span class="sep">──</span>
+    <span class="box">읽기 전용 연결</span><span class="sep">──</span>
+    <span class="box hi">VKG</span><span class="sep">──</span>
+    <span class="box">자연어 질의 · 검증 · 그래프 탐색</span>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow" style="background:none;padding:0;">Why VKG</span>
+      <h2>흩어진 테이블을, 하나의 관점으로</h2>
+      <p>고객·주문·정산처럼 여러 테이블에 걸친 데이터를 의미 단위로 조회하고, 오류를 미리 잡아내는 팀을 위해 만들었습니다.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature"><div class="glyph">◆</div><h3>흩어진 테이블, 하나의 관점으로</h3><p>여러 테이블에 걸친 데이터를 조인 없이 "의미" 단위로 한 번에 조회합니다.</p></div>
+      <div class="feature"><div class="glyph">✓</div><h3>데이터 품질을 자동으로 지킵니다</h3><p>업무 규칙을 저장해두고 반복 검증, 기간 비교, What-if 시뮬레이션까지 지원합니다.</p></div>
+      <div class="feature"><div class="glyph">↻</div><h3>항상 최신 데이터</h3><p>별도 동기화 없이 조회하는 순간의 실제 데이터베이스 상태를 그대로 보여줍니다.</p></div>
+      <div class="feature"><div class="glyph">▢</div><h3>클릭만으로 시작</h3><p>연결 선택 → 테이블 선택만으로 지식그래프가 자동으로 구성됩니다.</p></div>
+      <div class="feature"><div class="glyph">◎</div><h3>결과를 그래프로 확인</h3><p>조회 결과를 표 또는 노드-엣지 그래프로 전환해 연결된 데이터를 시각적으로 탐색합니다.</p></div>
+      <div class="feature"><div class="glyph">🛡</div><h3>100% 읽기 전용</h3><p>모든 계층이 조회 전용 뷰이며, 원본 데이터베이스는 어떤 경우에도 변경되지 않습니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="ai" class="alt">
+  <div class="wrap">
+    <div class="ai-panel">
+      <div class="ai-copy">
+        <span class="eyebrow">AI-Native</span>
+        <h2>SPARQL을 몰라도 됩니다 — 그냥 질문하세요</h2>
+        <p>N2SPARQL 엔진이 자연어 질문을 정확한 SPARQL 질의로 자동 변환합니다. 온톨로지 구조를 이해하고 있는 질의이므로, 잘못된 필드나 존재하지 않는 관계를 참조하지 않습니다.</p>
+        <ul class="ai-list">
+          <li><span class="dot"></span>"이번 달 청구금액이 정산금액보다 10만원 이상 많은 고객은?" 같은 질문을 바로 실행 결과로 받습니다.</li>
+          <li><span class="dot"></span>생성된 SPARQL은 항상 함께 표시되어, 결과를 검증하고 필요하면 직접 수정할 수 있습니다.</li>
+          <li><span class="dot"></span>결과는 표 또는 그래프로 즉시 시각화되어, 연결된 데이터를 계속 따라가며 탐색할 수 있습니다.</li>
+        </ul>
+      </div>
+      <div class="chat-demo">
+        <div class="bubble user">지난달 대비 정산 위반 건수가 늘어난 고객 알려줘</div>
+        <div class="bubble ai">지난달과 이번달 규칙 실행 결과를 비교해서 찾아볼게요.
+          <div class="code">SELECT ?customer ?diff WHERE {
+  ?v1 a :RuleViolation ; :period "2026-07" .
+  ?v2 a :RuleViolation ; :period "2026-08" .
+  ...
+} ORDER BY DESC(?diff)</div>
+        </div>
+        <div class="bubble ai">12개 고객에서 위반 건수가 증가했습니다. 그래프로 볼까요?</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow" style="background:none;padding:0;">How it works</span>
+      <h2>4단계로 시작하세요</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="circle"></div><h3>연결 선택</h3><p>이미 등록된 데이터베이스 연결을 선택합니다.</p></div>
+      <div class="step"><div class="circle"></div><h3>자동 생성</h3><p>테이블을 고르면 지식그래프 구조가 자동으로 만들어집니다.</p></div>
+      <div class="step"><div class="circle"></div><h3>자연어로 질의</h3><p>궁금한 것을 그대로 물어보면 SPARQL로 변환되어 실행됩니다.</p></div>
+      <div class="step"><div class="circle"></div><h3>검증 규칙 저장</h3><p>반복되는 점검은 규칙으로 저장해 자동으로 지킵니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="compare" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow" style="background:none;padding:0;">Comparison</span>
+      <h2>기존 방식과 무엇이 다른가요</h2>
+    </div>
+    <table class="compare">
+      <tr><th>항목</th><th>기존 (그래프 DB 별도 구축)</th><th>VKG</th></tr>
+      <tr><td>데이터 이동</td><td>ETL로 전체 복제 필요</td><td class="yes">불필요 — 원본 DB 그대로 조회</td></tr>
+      <tr><td>최신성</td><td>동기화 주기에 종속</td><td class="yes">항상 실시간</td></tr>
+      <tr><td>질의 방법</td><td>SPARQL/Cypher 직접 작성</td><td class="yes">자연어 질문으로 자동 변환</td></tr>
+      <tr><td>도입 비용</td><td>별도 인프라 + 데이터 이관</td><td class="yes">기존 연결 재사용, 4단계로 시작</td></tr>
+      <tr><td>검증 규칙</td><td>애플리케이션 코드로 직접 구현</td><td class="yes">UI에서 조건 조합으로 저장/재사용</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="assurance">
+      <span class="badge">100% 읽기 전용</span>
+      <p>VKG는 어떤 경우에도 원본 데이터베이스를 수정하지 않습니다. AI 질의 기능 역시 SELECT 기반 조회만 생성하며, 모든 계층이 조회 전용 뷰이므로 기존 애플리케이션과 데이터에 영향을 주지 않고 안전하게 도입할 수 있습니다.</p>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow" style="background:none;padding:0;">FAQ</span>
+      <h2>자주 묻는 질문</h2>
+    </div>
+    <div style="max-width:680px;margin:0 auto;">
+      <div class="faq-item"><h3>기존 데이터베이스를 옮겨야 하나요?</h3><p>아니요. VKG는 원본 데이터베이스에 연결만 할 뿐, 데이터를 복제하거나 이동하지 않습니다.</p></div>
+      <div class="faq-item"><h3>복잡한 스키마도 지원하나요?</h3><p>단일 키 테이블은 자동 생성되며, 복합키·자기참조 등 복잡한 구조는 시각 편집기로 직접 구성할 수 있습니다.</p></div>
+      <div class="faq-item"><h3>자연어 질의는 어떤 질문까지 가능한가요?</h3><p>등록된 온톨로지의 클래스·속성·관계 범위 내 질문을 지원하며, 생성된 SPARQL이 항상 함께 표시되어 결과를 검증할 수 있습니다.</p></div>
+      <div class="faq-item"><h3>보안은 어떻게 관리되나요?</h3><p>모든 질의는 조회 전용(SELECT)이며, 연결 권한은 기존 데이터베이스 계정 권한을 그대로 따릅니다.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="cta-final">
+    <h2>지금 데이터를 의미로 연결해보세요</h2>
+    <p>기존 데이터베이스 연결 정보만 있으면 몇 분 안에 시작할 수 있습니다.</p>
+    <a class="btn-primary" href="#">문의하기</a>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-links">
+    <a href="#features">기능</a>
+    <a href="#ai">AI 질의</a>
+    <a href="#how">사용법</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <div class="foot-note">VKG — Virtual Knowledge Graph · 문의: [연락처 입력 예정]</div>
+</footer>
